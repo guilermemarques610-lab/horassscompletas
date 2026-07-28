@@ -897,6 +897,13 @@
           placeholder: "tu@correo.com",
           type: "email",
         },
+        revolut: {
+          title: "Vincular Revolut",
+          icon: "images/revolut-logo.jpg",
+          label: "Número de teléfono",
+          placeholder: "+34 600 000 000",
+          type: "tel",
+        },
       };
       const cfg = config[method] || config.bizum;
       const titleEl = document.getElementById("vincular-title");
