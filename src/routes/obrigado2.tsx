@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import tiktokLogo from "@/assets/tiktok-logo-clean.png.asset.json";
 
@@ -18,6 +18,7 @@ export const Route = createFileRoute("/obrigado2")({
 });
 
 function Obrigado2() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -74,7 +75,7 @@ function Obrigado2() {
             </p>
 
             <button
-              onClick={() => window.location.href = "https://pay.tiktkonny.site/e403986c-4809-482f-87d4-86a0293da277"}
+              onClick={() => navigate({ to: "/obrigado3" })}
               className="w-full rounded-2xl bg-[#ff3b5c] py-5 text-[18px] font-black text-white shadow-[0_15px_35px_rgba(255,59,92,0.25)] transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
               SÍ, CONFIRMAR
