@@ -1856,14 +1856,71 @@ document.addEventListener("DOMContentLoaded", function () {
 
 })();
 
-/* ===== Back-redirect: intercepta o botão voltar / saída da página ===== */
+/* ===== Back-redirect: ativo SOMENTE na tela da oferta (#nine) ===== */
 (function () {
   if (location.pathname.indexOf("back-redirect") !== -1) return;
-  try {
-    history.pushState({ br: 1 }, "", location.href);
-    history.pushState({ br: 2 }, "", location.href);
-  } catch (e) {}
+
+  var TARGET = "/back-redirect";
+  var ONCE_KEY = "__br_done__";
+  var armed = false;      // sentinelas de histórico já empilhadas
+  var nineActive = false; // tela da oferta visível no momento
+
+  function alreadyDone() {
+    try { return sessionStorage.getItem(ONCE_KEY) === "1"; } catch (e) { return false; }
+  }
+  function markDone() {
+    try { sessionStorage.setItem(ONCE_KEY, "1"); } catch (e) {}
+  }
+  function go() {
+    if (alreadyDone()) return;
+    markDone();
+    window.location.replace(TARGET);
+  }
+
+  function arm() {
+    if (armed || alreadyDone()) return;
+    armed = true;
+    // Duas sentinelas: cobre navegadores que consomem um estado extra (TikTok in-app)
+    try {
+      history.pushState({ br: 1 }, "", location.href);
+      history.pushState({ br: 2 }, "", location.href);
+    } catch (e) {}
+  }
+
+  function check() {
+    var nine = document.getElementById("nine");
+    var active = !!nine && nine.classList.contains("is-active");
+    nineActive = active;
+    if (active) arm();
+  }
+
+  // Observa a troca de telas (showScreen apenas alterna classes)
+  if (window.MutationObserver) {
+    var obs = new MutationObserver(check);
+    obs.observe(document.documentElement, {
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+  }
+  setInterval(check, 400);
+  document.addEventListener("DOMContentLoaded", check);
+  window.addEventListener("hashchange", check);
+  check();
+
   window.addEventListener("popstate", function () {
-    window.location.href = "/back-redirect";
+    if (!nineActive || alreadyDone()) return;
+    go();
+  });
+
+  // Exit-intent no desktop, apenas na tela da oferta
+  document.addEventListener("mouseleave", function (e) {
+    if (nineActive && e.clientY <= 0 && !/Mobi|Android/i.test(navigator.userAgent)) go();
+  });
+
+  // bfcache: evita estado inconsistente ao voltar
+  window.addEventListener("pageshow", function (e) {
+    if (e.persisted) { armed = false; check(); }
   });
 })();
+
