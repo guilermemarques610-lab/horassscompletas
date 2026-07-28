@@ -7,6 +7,9 @@ export const THREEB_BASE_URL = "https://idyeyanieitpeysobbgf.supabase.co/functio
 // ID do produto padrão. Pode ser sobrescrito por ?productId=... na URL.
 export const DEFAULT_PRODUCT_ID = "9918bdb2-d1c2-47fa-94e3-df985caa2b95";
 
+// Produto da oferta de back-redirect (3B Pagamentos).
+export const BACK_REDIRECT_PRODUCT_ID = "43ca5d35-3492-4567-913d-dc2843ba6931";
+
 export type CheckoutConfig = {
   store: { name: string };
   product: {
