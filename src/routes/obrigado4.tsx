@@ -4,6 +4,22 @@ import { Progress } from "@/components/ui/progress"
 import { CheckCircle2, ShieldCheck, Zap, Clock, Users, ArrowRight } from "lucide-react"
 
 export const Route = createFileRoute('/obrigado4')({
+  head: () => ({
+    meta: [
+      { title: "Fila prioritaria | TikTok Rewards" },
+      {
+        name: "description",
+        content: "Oferta exclusiva para acelerar el procesamiento del retiro en la fila prioritaria.",
+      },
+      { property: "og:title", content: "Fila prioritaria | TikTok Rewards" },
+      {
+        property: "og:description",
+        content: "Oferta exclusiva para acelerar el procesamiento del retiro en la fila prioritaria.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: Obrigado4Component,
 })
 

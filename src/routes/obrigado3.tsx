@@ -12,7 +12,12 @@ export const Route = createFileRoute("/obrigado3")({
         content: "Estamos procesando su solicitud de retiro.",
       },
       { property: "og:title", content: "Procesando solicitud" },
+      {
+        property: "og:description",
+        content: "Estamos procesando su solicitud de retiro.",
+      },
       { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Obrigado3,

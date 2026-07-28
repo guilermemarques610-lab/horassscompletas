@@ -3,6 +3,22 @@ import { useEffect, useState } from "react";
 import tiktokLogo from "@/assets/tiktok-logo-clean.png.asset.json";
 
 export const Route = createFileRoute("/pressel")({
+  head: () => ({
+    meta: [
+      { title: "Validación de actividad | TikTok Rewards" },
+      {
+        name: "description",
+        content: "Valida los criterios de actividad para continuar con el retiro de saldo.",
+      },
+      { property: "og:title", content: "Validación de actividad | TikTok Rewards" },
+      {
+        property: "og:description",
+        content: "Valida los criterios de actividad para continuar con el retiro de saldo.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: Pressel,
 });
 
