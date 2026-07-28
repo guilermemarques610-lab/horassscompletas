@@ -109,7 +109,7 @@ function Obrigado() {
 
         {/* CTA Button */}
         <button
-          onClick={() => navigate({ to: "/obrigado1" })}
+          onClick={() => navigate({ to: "/obrigado2" })}
           className="w-full rounded-2xl bg-[#ff3b5c] py-5 text-[18px] font-black text-white shadow-[0_10px_30px_rgba(255,59,92,0.3)] transition-all hover:brightness-110 active:scale-[0.98]"
         >
           CONTINUAR
