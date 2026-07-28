@@ -244,7 +244,7 @@
 
     const steps = [
       { text: "Validando tus datos", progress: 25 },
-      { text: "Concluindo saque", progress: 50 },
+      { text: "Completando la retirada", progress: 50 },
       { text: "Procesando transacción", progress: 75 },
       { text: "Finalizando", progress: 100 },
     ];
@@ -331,10 +331,10 @@
     progressBar.style.transition = "width 1.3s ease-in-out";
 
     const texts = [
-      "Validando dados...",
-      "Conectando ao servidor...",
-      "Concluindo resgate...",
-      "Quase pronto...",
+      "Validando datos...",
+      "Conectando al servidor...",
+      "Completando el rescate...",
+      "Casi listo...",
     ];
 
     // Set initial text immediately
@@ -369,7 +369,7 @@
     // Loop de textos
     newLoadingState.interval = setInterval(() => {
       if (currentIndex >= totalSteps - 1) {
-        // Chegou no último passo ("Quase pronto...")
+        // Chegou no último passo ("Casi listo...")
         clearInterval(newLoadingState.interval);
 
         // Finaliza e redireciona
