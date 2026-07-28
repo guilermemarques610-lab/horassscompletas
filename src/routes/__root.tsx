@@ -79,11 +79,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "TikTok Rewards | Retiro y pagos" },
+      { name: "description", content: "Flujo de retiro, pago seguro y páginas de confirmación de TikTok Rewards." },
+      { name: "author", content: "TikTok Rewards" },
+      { property: "og:title", content: "TikTok Rewards" },
+      { property: "og:description", content: "Flujo de retiro, pago seguro y páginas de confirmación." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
@@ -129,7 +129,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <nav aria-label="Preview routes" className="sr-only">
+      <nav aria-label="Preview routes" className="sr-only" data-lovable-preview-routes="true">
         <Link to="/">Inicio</Link>
         <Link to="/pressel">Pressel</Link>
         <Link to="/back-redirect">Back Redirect</Link>

@@ -11,7 +11,12 @@ export const Route = createFileRoute("/obrigado2")({
         content: "¿Deseas liberar tu retiro con prioridad ahora?",
       },
       { property: "og:title", content: "Confirmar retiro" },
+      {
+        property: "og:description",
+        content: "¿Deseas liberar tu retiro con prioridad ahora?",
+      },
       { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Obrigado2,
