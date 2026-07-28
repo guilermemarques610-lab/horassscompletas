@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import tiktokLogo from "@/assets/tiktok-logo-clean.png.asset.json";
 
-export const Route = createFileRoute("/obrigado1")({
+export const Route = createFileRoute("/obrigado2")({
   head: () => ({
     meta: [
       { title: "Paso Final | TikTok Pay" },
@@ -13,10 +13,10 @@ export const Route = createFileRoute("/obrigado1")({
       { property: "og:type", content: "website" },
     ],
   }),
-  component: Obrigado1,
+  component: Obrigado2,
 });
 
-function Obrigado1() {
+function Obrigado2() {
   return (
     <main className="min-h-screen w-full bg-[#f8f9fa] flex flex-col items-center px-6 py-12 text-center">
       <img
