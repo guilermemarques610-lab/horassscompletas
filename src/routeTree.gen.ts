@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PresselRouteImport } from './routes/pressel'
+import { Route as Obrigado3RouteImport } from './routes/obrigado3'
 import { Route as Obrigado2RouteImport } from './routes/obrigado2'
 import { Route as ObrigadoRouteImport } from './routes/obrigado'
 import { Route as CheckoutRouteImport } from './routes/checkout'
@@ -19,6 +20,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const PresselRoute = PresselRouteImport.update({
   id: '/pressel',
   path: '/pressel',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Obrigado3Route = Obrigado3RouteImport.update({
+  id: '/obrigado3',
+  path: '/obrigado3',
   getParentRoute: () => rootRouteImport,
 } as any)
 const Obrigado2Route = Obrigado2RouteImport.update({
@@ -53,6 +59,7 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof CheckoutRoute
   '/obrigado': typeof ObrigadoRoute
   '/obrigado2': typeof Obrigado2Route
+  '/obrigado3': typeof Obrigado3Route
   '/pressel': typeof PresselRoute
 }
 export interface FileRoutesByTo {
@@ -61,6 +68,7 @@ export interface FileRoutesByTo {
   '/checkout': typeof CheckoutRoute
   '/obrigado': typeof ObrigadoRoute
   '/obrigado2': typeof Obrigado2Route
+  '/obrigado3': typeof Obrigado3Route
   '/pressel': typeof PresselRoute
 }
 export interface FileRoutesById {
@@ -70,6 +78,7 @@ export interface FileRoutesById {
   '/checkout': typeof CheckoutRoute
   '/obrigado': typeof ObrigadoRoute
   '/obrigado2': typeof Obrigado2Route
+  '/obrigado3': typeof Obrigado3Route
   '/pressel': typeof PresselRoute
 }
 export interface FileRouteTypes {
@@ -80,6 +89,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/obrigado'
     | '/obrigado2'
+    | '/obrigado3'
     | '/pressel'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -88,6 +98,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/obrigado'
     | '/obrigado2'
+    | '/obrigado3'
     | '/pressel'
   id:
     | '__root__'
@@ -96,6 +107,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/obrigado'
     | '/obrigado2'
+    | '/obrigado3'
     | '/pressel'
   fileRoutesById: FileRoutesById
 }
@@ -105,6 +117,7 @@ export interface RootRouteChildren {
   CheckoutRoute: typeof CheckoutRoute
   ObrigadoRoute: typeof ObrigadoRoute
   Obrigado2Route: typeof Obrigado2Route
+  Obrigado3Route: typeof Obrigado3Route
   PresselRoute: typeof PresselRoute
 }
 
@@ -115,6 +128,13 @@ declare module '@tanstack/react-router' {
       path: '/pressel'
       fullPath: '/pressel'
       preLoaderRoute: typeof PresselRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/obrigado3': {
+      id: '/obrigado3'
+      path: '/obrigado3'
+      fullPath: '/obrigado3'
+      preLoaderRoute: typeof Obrigado3RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/obrigado2': {
@@ -161,6 +181,7 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutRoute: CheckoutRoute,
   ObrigadoRoute: ObrigadoRoute,
   Obrigado2Route: Obrigado2Route,
+  Obrigado3Route: Obrigado3Route,
   PresselRoute: PresselRoute,
 }
 export const routeTree = rootRouteImport
