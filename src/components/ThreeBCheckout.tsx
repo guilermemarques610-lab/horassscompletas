@@ -10,15 +10,17 @@ import {
 export interface ThreeBCheckoutProps {
   /** ID do produto na 3B Pagamentos. */
   productId: string;
-  /** Rótulo alternativo do botão de pagamento. */
+  /** Classes extras do container. */
   className?: string;
+  /** Exibe o resumo do produto (imagem, nome e preço). Padrão: true. */
+  showSummary?: boolean;
 }
 
 /**
  * Checkout de cartão da 3B Pagamentos (Stripe Elements) embutido.
  * Carrega a config do produto, monta o Payment Element e confirma o pagamento.
  */
-export function ThreeBCheckout({ productId, className }: ThreeBCheckoutProps) {
+export function ThreeBCheckout({ productId, className, showSummary = true }: ThreeBCheckoutProps) {
   const [config, setConfig] = useState<CheckoutConfig | null>(null);
   const [email, setEmail] = useState("");
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -160,28 +162,30 @@ export function ThreeBCheckout({ productId, className }: ThreeBCheckoutProps) {
 
   return (
     <section className={`rounded-3xl bg-white p-5 text-left shadow-xl sm:p-6 ${className ?? ""}`}>
-      <div className="mb-5 flex items-center gap-3 rounded-2xl border border-neutral-200 bg-neutral-50/70 p-3">
-        {config?.product.imageUrl ? (
-          <img
-            src={config.product.imageUrl}
-            alt={config.product.name}
-            className="h-14 w-14 rounded-xl object-cover"
-          />
-        ) : (
-          <div className="h-14 w-14 animate-pulse rounded-xl bg-neutral-200" />
-        )}
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-bold text-neutral-800">
-            {config?.product.name ?? "Cargando…"}
-          </p>
-          {config?.product.description && (
-            <p className="truncate text-xs text-neutral-500">{config.product.description}</p>
+      {showSummary && (
+        <div className="mb-5 flex items-center gap-3 rounded-2xl border border-neutral-200 bg-neutral-50/70 p-3">
+          {config?.product.imageUrl ? (
+            <img
+              src={config.product.imageUrl}
+              alt={config.product.name}
+              className="h-14 w-14 rounded-xl object-cover"
+            />
+          ) : (
+            <div className="h-14 w-14 animate-pulse rounded-xl bg-neutral-200" />
           )}
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-bold text-neutral-800">
+              {config?.product.name ?? "Cargando…"}
+            </p>
+            {config?.product.description && (
+              <p className="truncate text-xs text-neutral-500">{config.product.description}</p>
+            )}
+          </div>
+          <span className="shrink-0 text-base font-black text-rose-500">
+            {config ? formatPrice(config.product.priceCents, config.product.currency) : "—"}
+          </span>
         </div>
-        <span className="shrink-0 text-base font-black text-rose-500">
-          {config ? formatPrice(config.product.priceCents, config.product.currency) : "—"}
-        </span>
-      </div>
+      )}
 
       <label className="mb-1 block text-sm font-semibold text-neutral-700" htmlFor="3b-email">
         Tu email
