@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import tiktokLogo from "@/assets/tiktok-logo-clean.png.asset.json";
 import { BACK_REDIRECT_PRODUCT_ID } from "@/lib/checkout-config";
+import { ThreeBCheckout } from "@/components/ThreeBCheckout";
 
 export const Route = createFileRoute("/back-redirect")({
   head: () => ({
@@ -35,6 +36,7 @@ function BackRedirect() {
   const [step, setStep] = useState(0);
   const [showOffer, setShowOffer] = useState(false);
   const [seconds, setSeconds] = useState(300);
+  const [showCheckout, setShowCheckout] = useState(false);
 
   useEffect(() => {
     const timers = STEPS.map((_, i) =>
@@ -118,12 +120,19 @@ function BackRedirect() {
           </p>
         </div>
 
-        <a
-          href={`/checkout?productId=${BACK_REDIRECT_PRODUCT_ID}`}
-          className="w-full rounded-full bg-gradient-to-r from-rose-500 to-rose-600 py-6 text-xl font-black uppercase tracking-tighter text-white shadow-lg transition-all hover:from-rose-600 hover:to-rose-700 active:scale-[0.99]"
-        >
-          Canjear mi descuento + bono
-        </a>
+        {showCheckout ? (
+          <div className="w-full">
+            <ThreeBCheckout productId={BACK_REDIRECT_PRODUCT_ID} />
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setShowCheckout(true)}
+            className="w-full rounded-full bg-gradient-to-r from-rose-500 to-rose-600 py-6 text-xl font-black uppercase tracking-tighter text-white shadow-lg transition-all hover:from-rose-600 hover:to-rose-700 active:scale-[0.99]"
+          >
+            Canjear mi descuento + bono
+          </button>
+        )}
       </section>
     </main>
   );
