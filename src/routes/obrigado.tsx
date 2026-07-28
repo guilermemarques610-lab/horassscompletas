@@ -12,7 +12,7 @@ export const Route = createFileRoute("/obrigado")({
       { property: "og:title", content: "Solicitud Confirmada" },
       {
         property: "og:description",
-        content: "Tu retiro fue recibido con éxito.",
+        content: "Tu retiro fue recibido con éxito. Procesamiento en curso.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
