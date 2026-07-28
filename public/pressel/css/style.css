@@ -1063,6 +1063,13 @@ button:focus {
   height: auto !important;
   min-height: 300px;
 }
+#four .saque-popup {
+  height: auto !important;
+  max-height: 85vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
 #four {
 }
 #four a {
