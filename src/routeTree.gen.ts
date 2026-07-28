@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PresselRouteImport } from './routes/pressel'
+import { Route as Obrigado1RouteImport } from './routes/obrigado1'
 import { Route as ObrigadoRouteImport } from './routes/obrigado'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as BackRedirectRouteImport } from './routes/back-redirect'
@@ -18,6 +19,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const PresselRoute = PresselRouteImport.update({
   id: '/pressel',
   path: '/pressel',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Obrigado1Route = Obrigado1RouteImport.update({
+  id: '/obrigado1',
+  path: '/obrigado1',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ObrigadoRoute = ObrigadoRouteImport.update({
@@ -46,6 +52,7 @@ export interface FileRoutesByFullPath {
   '/back-redirect': typeof BackRedirectRoute
   '/checkout': typeof CheckoutRoute
   '/obrigado': typeof ObrigadoRoute
+  '/obrigado1': typeof Obrigado1Route
   '/pressel': typeof PresselRoute
 }
 export interface FileRoutesByTo {
@@ -53,6 +60,7 @@ export interface FileRoutesByTo {
   '/back-redirect': typeof BackRedirectRoute
   '/checkout': typeof CheckoutRoute
   '/obrigado': typeof ObrigadoRoute
+  '/obrigado1': typeof Obrigado1Route
   '/pressel': typeof PresselRoute
 }
 export interface FileRoutesById {
@@ -61,19 +69,33 @@ export interface FileRoutesById {
   '/back-redirect': typeof BackRedirectRoute
   '/checkout': typeof CheckoutRoute
   '/obrigado': typeof ObrigadoRoute
+  '/obrigado1': typeof Obrigado1Route
   '/pressel': typeof PresselRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/back-redirect' | '/checkout' | '/obrigado' | '/pressel'
+  fullPaths:
+    | '/'
+    | '/back-redirect'
+    | '/checkout'
+    | '/obrigado'
+    | '/obrigado1'
+    | '/pressel'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/back-redirect' | '/checkout' | '/obrigado' | '/pressel'
+  to:
+    | '/'
+    | '/back-redirect'
+    | '/checkout'
+    | '/obrigado'
+    | '/obrigado1'
+    | '/pressel'
   id:
     | '__root__'
     | '/'
     | '/back-redirect'
     | '/checkout'
     | '/obrigado'
+    | '/obrigado1'
     | '/pressel'
   fileRoutesById: FileRoutesById
 }
@@ -82,6 +104,7 @@ export interface RootRouteChildren {
   BackRedirectRoute: typeof BackRedirectRoute
   CheckoutRoute: typeof CheckoutRoute
   ObrigadoRoute: typeof ObrigadoRoute
+  Obrigado1Route: typeof Obrigado1Route
   PresselRoute: typeof PresselRoute
 }
 
@@ -92,6 +115,13 @@ declare module '@tanstack/react-router' {
       path: '/pressel'
       fullPath: '/pressel'
       preLoaderRoute: typeof PresselRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/obrigado1': {
+      id: '/obrigado1'
+      path: '/obrigado1'
+      fullPath: '/obrigado1'
+      preLoaderRoute: typeof Obrigado1RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/obrigado': {
@@ -130,6 +160,7 @@ const rootRouteChildren: RootRouteChildren = {
   BackRedirectRoute: BackRedirectRoute,
   CheckoutRoute: CheckoutRoute,
   ObrigadoRoute: ObrigadoRoute,
+  Obrigado1Route: Obrigado1Route,
   PresselRoute: PresselRoute,
 }
 export const routeTree = rootRouteImport
