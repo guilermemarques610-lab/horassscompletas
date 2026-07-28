@@ -129,6 +129,16 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <nav aria-label="Preview routes" className="sr-only">
+        <Link to="/">Inicio</Link>
+        <Link to="/pressel">Pressel</Link>
+        <Link to="/back-redirect">Back Redirect</Link>
+        <Link to="/checkout">Checkout</Link>
+        <Link to="/obrigado">Obrigado</Link>
+        <Link to="/obrigado2">Obrigado 2</Link>
+        <Link to="/obrigado3">Obrigado 3</Link>
+        <Link to="/obrigado4">Obrigado 4</Link>
+      </nav>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
     </QueryClientProvider>
