@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import tiktokLogo from "@/assets/tiktok-logo-clean.png.asset.json";
 
@@ -7,7 +7,6 @@ export const Route = createFileRoute("/pressel")({
 });
 
 function Pressel() {
-  const navigate = useNavigate();
   const metrics = [
     { label: "Vídeos vistos", target: 50 },
     { label: "Tiempo de uso en la plataforma", target: 1000 },
@@ -120,7 +119,9 @@ function Pressel() {
         <button
           type="button"
           disabled={!done}
-          onClick={() => navigate({ to: "/" })}
+          onClick={() => {
+            window.location.href = `/pressel/index.html${window.location.search}`;
+          }}
           className={`w-full bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 active:scale-[0.99] text-white font-bold py-4 rounded-full shadow-lg flex items-center justify-center gap-2 transition-all duration-500 ${
             done
               ? "opacity-100 scale-100 pointer-events-auto"
