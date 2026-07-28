@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PresselRouteImport } from './routes/pressel'
+import { Route as Obrigado4RouteImport } from './routes/obrigado4'
 import { Route as Obrigado3RouteImport } from './routes/obrigado3'
 import { Route as Obrigado2RouteImport } from './routes/obrigado2'
 import { Route as ObrigadoRouteImport } from './routes/obrigado'
@@ -20,6 +21,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const PresselRoute = PresselRouteImport.update({
   id: '/pressel',
   path: '/pressel',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Obrigado4Route = Obrigado4RouteImport.update({
+  id: '/obrigado4',
+  path: '/obrigado4',
   getParentRoute: () => rootRouteImport,
 } as any)
 const Obrigado3Route = Obrigado3RouteImport.update({
@@ -60,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/obrigado': typeof ObrigadoRoute
   '/obrigado2': typeof Obrigado2Route
   '/obrigado3': typeof Obrigado3Route
+  '/obrigado4': typeof Obrigado4Route
   '/pressel': typeof PresselRoute
 }
 export interface FileRoutesByTo {
@@ -69,6 +76,7 @@ export interface FileRoutesByTo {
   '/obrigado': typeof ObrigadoRoute
   '/obrigado2': typeof Obrigado2Route
   '/obrigado3': typeof Obrigado3Route
+  '/obrigado4': typeof Obrigado4Route
   '/pressel': typeof PresselRoute
 }
 export interface FileRoutesById {
@@ -79,6 +87,7 @@ export interface FileRoutesById {
   '/obrigado': typeof ObrigadoRoute
   '/obrigado2': typeof Obrigado2Route
   '/obrigado3': typeof Obrigado3Route
+  '/obrigado4': typeof Obrigado4Route
   '/pressel': typeof PresselRoute
 }
 export interface FileRouteTypes {
@@ -90,6 +99,7 @@ export interface FileRouteTypes {
     | '/obrigado'
     | '/obrigado2'
     | '/obrigado3'
+    | '/obrigado4'
     | '/pressel'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -99,6 +109,7 @@ export interface FileRouteTypes {
     | '/obrigado'
     | '/obrigado2'
     | '/obrigado3'
+    | '/obrigado4'
     | '/pressel'
   id:
     | '__root__'
@@ -108,6 +119,7 @@ export interface FileRouteTypes {
     | '/obrigado'
     | '/obrigado2'
     | '/obrigado3'
+    | '/obrigado4'
     | '/pressel'
   fileRoutesById: FileRoutesById
 }
@@ -118,6 +130,7 @@ export interface RootRouteChildren {
   ObrigadoRoute: typeof ObrigadoRoute
   Obrigado2Route: typeof Obrigado2Route
   Obrigado3Route: typeof Obrigado3Route
+  Obrigado4Route: typeof Obrigado4Route
   PresselRoute: typeof PresselRoute
 }
 
@@ -128,6 +141,13 @@ declare module '@tanstack/react-router' {
       path: '/pressel'
       fullPath: '/pressel'
       preLoaderRoute: typeof PresselRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/obrigado4': {
+      id: '/obrigado4'
+      path: '/obrigado4'
+      fullPath: '/obrigado4'
+      preLoaderRoute: typeof Obrigado4RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/obrigado3': {
@@ -182,6 +202,7 @@ const rootRouteChildren: RootRouteChildren = {
   ObrigadoRoute: ObrigadoRoute,
   Obrigado2Route: Obrigado2Route,
   Obrigado3Route: Obrigado3Route,
+  Obrigado4Route: Obrigado4Route,
   PresselRoute: PresselRoute,
 }
 export const routeTree = rootRouteImport

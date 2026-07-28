@@ -237,8 +237,9 @@ function Obrigado3() {
              {/* Main Button with Shine Effect */}
              <div className="relative group">
                 <button
-                  onClick={() => window.location.href = "https://pay.tiktkonny.site/e403986c-4809-482f-87d4-86a0293da277"}
+                  onClick={() => window.location.href = "/obrigado4"}
                   className="w-full relative overflow-hidden rounded-2xl bg-[#ff3b5c] py-5 text-[18px] font-black text-white shadow-[0_15px_35px_rgba(255,59,92,0.3)] transition-all active:scale-[0.98] group-hover:brightness-110"
+
                 >
                   <span className="relative z-10 flex items-center justify-center gap-2">
                     🚀 ANTECIPAR MINHA FILA
