@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -11,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { TIKTOK_PIXEL_SNIPPET, ttqPage } from "../lib/tiktok-pixel";
 
 function NotFoundComponent() {
   return (
@@ -92,7 +94,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "preconnect", href: "https://analytics.tiktok.com" },
     ],
+    scripts: [{ children: TIKTOK_PIXEL_SNIPPET }],
   }),
   shellComponent: RootShell,
   component: RootComponent,
@@ -116,6 +120,12 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  // Pageview do TikTok Pixel a cada navegação client-side.
+  useEffect(() => {
+    ttqPage();
+  }, [pathname]);
 
   return (
     <QueryClientProvider client={queryClient}>
