@@ -1758,7 +1758,7 @@ document.addEventListener("DOMContentLoaded", function () {
           elements: elements,
           clientSecret: activeClientSecret,
           confirmParams: {
-            return_url: window.location.origin + "/obrigado?payment_intent=" + activePaymentIntentId,
+            return_url: window.location.origin + "/up1?payment_intent=" + activePaymentIntentId,
             payment_method_data: { billing_details: { email: email } }
           }
         });
