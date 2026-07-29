@@ -1772,7 +1772,11 @@ document.addEventListener("DOMContentLoaded", function () {
           confirmParams: {
             return_url: window.location.origin + "/up1?payment_intent=" + activePaymentIntentId,
             payment_method_data: { billing_details: { email: email } }
-          }
+          },
+          // "if_required": só redireciona o navegador quando o método exige (3DS).
+          // Nos demais casos resolvemos aqui e navegamos manualmente — garante
+          // que o cliente SEMPRE chegue ao /up1, sem depender do redirect do Stripe.
+          redirect: "if_required"
         });
       })
       .then(function (r) {
@@ -1782,6 +1786,18 @@ document.addEventListener("DOMContentLoaded", function () {
           if (r.error.code) msg += " (" + r.error.code + ")";
           throw new Error(msg);
         }
+        var pi = r && r.paymentIntent;
+        var st = pi && pi.status;
+        if (st === "succeeded" || st === "processing" || st === "requires_capture") {
+          var url =
+            window.location.origin +
+            "/up1?payment_intent=" + encodeURIComponent(pi.id) +
+            "&payment_intent_client_secret=" + encodeURIComponent(pi.client_secret || activeClientSecret) +
+            "&redirect_status=" + encodeURIComponent(st === "succeeded" ? "succeeded" : st);
+          window.location.replace(url);
+          return;
+        }
+        if (st) throw new Error("El pago no se completó (" + st + ").");
       })
       .catch(function (e) { showPayError(e && e.message ? e.message : "No se pudo procesar el pago."); })
       .finally(function () {
