@@ -122,7 +122,7 @@ function Up1Page() {
         {/* Checkout inline (API 3B Pagamentos) */}
         {showCheckout && (
           <div className="mt-5 text-left">
-            <ThreeBCheckout productId={UP1_PRODUCT_ID} showSummary />
+            <ThreeBCheckout productId={UP1_PRODUCT_ID} showSummary={false} />
           </div>
         )}
 
