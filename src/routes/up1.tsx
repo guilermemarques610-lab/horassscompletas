@@ -26,9 +26,8 @@ export const Route = createFileRoute("/up1")({
 });
 
 function Up1Page() {
-  const retry = () => {
-    window.location.href = `/pressel/index.html${window.location.search}`;
-  };
+  const [showCheckout, setShowCheckout] = useState(false);
+
 
   return (
     <main className="min-h-screen w-full bg-gradient-to-b from-[#fdeef2] to-[#fbdde4] px-4 py-10 flex flex-col items-center">
