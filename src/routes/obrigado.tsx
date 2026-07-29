@@ -26,6 +26,18 @@ export const Route = createFileRoute("/obrigado")({
 function Obrigado() {
   const navigate = useNavigate();
 
+  // Produto realmente comprado (o checkout envia ?productId=).
+  const productId =
+    (typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).get("productId")) ||
+    DEFAULT_PRODUCT_ID;
+
+  // Confirmação server-side da 3B (Events API) + Purchase do TikTok pós-confirmação.
+  useThreeBTracking(productId);
+  useTikTokPurchase({ productId });
+
+
+
   return (
     <main className="min-h-screen w-full bg-[#f8f9fa] flex flex-col items-center">
       {/* Header Warning */}
