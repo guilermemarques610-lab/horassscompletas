@@ -1706,6 +1706,14 @@ document.addEventListener("DOMContentLoaded", function () {
             amount: data.product.priceCents,
             currency: String(data.product.currency).toLowerCase(),
             locale: "es",
+            // A PaymentIntent criada pela 3B para este produto nao define
+            // setup_future_usage. Sem este override, Stripe Elements pode
+            // confirmar cartao/Link com on_session e o Stripe rejeita por
+            // divergencia entre Elements e PaymentIntent.
+            paymentMethodOptions: {
+              card: { setupFutureUsage: "none" },
+              link: { setupFutureUsage: "none" }
+            },
             appearance: { theme: "stripe", variables: { colorPrimary: "#f43f5e", borderRadius: "12px", fontFamily: "system-ui, sans-serif" } }
           });
           var expr = elements.create("expressCheckout");
