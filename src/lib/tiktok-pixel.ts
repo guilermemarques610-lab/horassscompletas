@@ -2,7 +2,7 @@
  * TikTok Pixel — carregado em todas as páginas da oferta.
  * O snippet abaixo é o oficial da TikTok, injetado inline no <head>.
  */
-export const TIKTOK_PIXEL_ID = "D79GBHRC77U5V754BN40";
+export const TIKTOK_PIXEL_ID = "D4N12F3C77UCJ0N6NBQ0";
 
 export const TIKTOK_PIXEL_SNIPPET = `
 !function (w, d, t) {
@@ -16,12 +16,16 @@ var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n
 `;
 
 /** Dispara um evento no pixel de forma segura (no-op no servidor). */
-export function ttqTrack(event: string, params?: Record<string, unknown>) {
+export function ttqTrack(event: string, params?: Record<string, unknown>, eventId?: string) {
   if (typeof window === "undefined") return;
   const ttq = (window as any).ttq;
   if (!ttq?.track) return;
   try {
-    ttq.track(event, params ?? {});
+    if (eventId) {
+      ttq.track(event, params ?? {}, { event_id: eventId });
+    } else {
+      ttq.track(event, params ?? {});
+    }
   } catch (err) {
     console.error("TikTok pixel track failed", err);
   }

@@ -1704,6 +1704,18 @@ document.addEventListener("DOMContentLoaded", function () {
           var email = buyerEmail();
           if (!email) throw new Error("No encontramos tu email. Vuelve y complétalo.");
           stripe = S(data.publishableKey);
+          try {
+            if (window.ttq && window.ttq.track) {
+              window.ttq.track("InitiateCheckout", {
+                content_id: data.product.id,
+                content_type: "product",
+                content_name: data.product.name,
+                quantity: 1,
+                value: (data.product.priceCents || 0) / 100,
+                currency: String(data.product.currency || "eur").toUpperCase()
+              });
+            }
+          } catch (e) { console.error("ttq InitiateCheckout failed", e); }
           return fetch(THREEB_BASE_URL + "/create-payment-intent", {
             method: "POST",
             headers: { "Content-Type": "application/json" },

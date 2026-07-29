@@ -6,6 +6,7 @@ import {
   loadStripeJs,
   type CheckoutConfig,
 } from "@/lib/checkout-config";
+import { useThreeBTracking } from "@/lib/purchase-tracking";
 
 export interface ThreeBCheckoutProps {
   /** ID do produto na 3B Pagamentos. */
@@ -83,6 +84,8 @@ function getErrorMessage(error: unknown, fallback: string) {
  * Carrega a config do produto, monta o Payment Element e confirma o pagamento.
  */
 export function ThreeBCheckout({ productId, className, showSummary = true }: ThreeBCheckoutProps) {
+  // Script oficial de tracking da 3B (checkout via API).
+  useThreeBTracking(productId);
   const [config, setConfig] = useState<CheckoutConfig | null>(null);
   const [email, setEmail] = useState("");
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -222,7 +225,7 @@ export function ThreeBCheckout({ productId, className, showSummary = true }: Thr
         elements,
         clientSecret,
         confirmParams: {
-          return_url: `${window.location.origin}/obrigado?payment_intent=${paymentIntentIdRef.current}`,
+          return_url: `${window.location.origin}/obrigado?payment_intent=${paymentIntentIdRef.current}&productId=${encodeURIComponent(productId)}`,
           payment_method_data: { billing_details: { email: buyerEmail } },
         },
       });
