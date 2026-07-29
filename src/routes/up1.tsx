@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { ThreeBCheckout } from "@/components/ThreeBCheckout";
-import { UP1_PRODUCT_ID } from "@/lib/checkout-config";
+import { DEFAULT_PRODUCT_ID, UP1_PRODUCT_ID } from "@/lib/checkout-config";
+import { useThreeBTracking, useTikTokPurchase } from "@/lib/purchase-tracking";
 
 export const Route = createFileRoute("/up1")({
   head: () => ({
