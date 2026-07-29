@@ -95,25 +95,35 @@ function Up1Page() {
         </div>
 
         {/* CTA */}
-        <button
-          type="button"
-          onClick={retry}
-          className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-rose-600 px-6 py-4 text-base font-bold text-white shadow-lg shadow-rose-500/30 transition-all hover:from-rose-600 hover:to-rose-700 active:scale-[0.99]"
-        >
-          Intentar de nuevo
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2.5}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-4 w-4"
+        {!showCheckout && (
+          <button
+            type="button"
+            onClick={() => setShowCheckout(true)}
+            className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-rose-600 px-6 py-4 text-base font-bold text-white shadow-lg shadow-rose-500/30 transition-all hover:from-rose-600 hover:to-rose-700 active:scale-[0.99]"
           >
-            <line x1="5" y1="12" x2="19" y2="12" />
-            <polyline points="12 5 19 12 12 19" />
-          </svg>
-        </button>
+            Intentar de nuevo
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2.5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-4 w-4"
+            >
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
+          </button>
+        )}
+
+        {/* Checkout inline (API 3B Pagamentos) */}
+        {showCheckout && (
+          <div className="mt-5 text-left">
+            <ThreeBCheckout productId={UP1_PRODUCT_ID} showSummary />
+          </div>
+        )}
+
 
         <div className="mt-6 border-t border-dashed border-neutral-200" />
 
