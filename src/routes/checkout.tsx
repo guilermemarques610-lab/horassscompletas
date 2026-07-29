@@ -87,8 +87,8 @@ function Checkout() {
           // Sem isto, o Link/carteiras podem enviar "on_session" e o Stripe
           // rejeita o confirm com erro de parametros incompativeis.
           paymentMethodOptions: {
-            card: { setupFutureUsage: "none" },
-            link: { setupFutureUsage: "none" },
+            card: { setup_future_usage: "none" },
+            link: { setup_future_usage: "none" },
           },
           appearance: {
             theme: "stripe",

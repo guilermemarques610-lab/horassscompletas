@@ -1711,8 +1711,8 @@ document.addEventListener("DOMContentLoaded", function () {
             // confirmar cartao/Link com on_session e o Stripe rejeita por
             // divergencia entre Elements e PaymentIntent.
             paymentMethodOptions: {
-              card: { setupFutureUsage: "none" },
-              link: { setupFutureUsage: "none" }
+              card: { setup_future_usage: "none" },
+              link: { setup_future_usage: "none" }
             },
             appearance: { theme: "stripe", variables: { colorPrimary: "#f43f5e", borderRadius: "12px", fontFamily: "system-ui, sans-serif" } }
           });
