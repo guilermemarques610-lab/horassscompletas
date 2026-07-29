@@ -29,6 +29,13 @@ export const Route = createFileRoute("/up1")({
 function Up1Page() {
   const [showCheckout, setShowCheckout] = useState(false);
 
+  // /up1 também é a página de retorno da compra da home (pressel):
+  // confirma o pagamento com a 3B e dispara Purchase do produto principal.
+  useThreeBTracking(DEFAULT_PRODUCT_ID);
+  useTikTokPurchase({ productId: DEFAULT_PRODUCT_ID });
+
+
+
 
   return (
     <main className="min-h-screen w-full bg-gradient-to-b from-[#fdeef2] to-[#fbdde4] px-4 py-10 flex flex-col items-center">
