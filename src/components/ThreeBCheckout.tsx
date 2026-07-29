@@ -16,6 +16,68 @@ export interface ThreeBCheckoutProps {
   showSummary?: boolean;
 }
 
+type StripePaymentError = {
+  message?: string;
+  code?: string;
+};
+
+type StripeSubmitResult = {
+  error?: StripePaymentError;
+};
+
+type StripeConfirmResult = {
+  error?: StripePaymentError;
+};
+
+type StripePaymentElement = {
+  mount: (selectorOrElement: string | HTMLElement) => void;
+  on: (event: "ready", callback: () => void) => void;
+};
+
+type StripeElements = {
+  create: (
+    type: "payment",
+    options?: {
+      terms?: { card?: "always" | "auto" | "never" };
+      fields?: { billingDetails?: { email?: "auto" | "never" } };
+      wallets?: { applePay?: "auto" | "never"; googlePay?: "auto" | "never"; link?: "auto" | "never" };
+      paymentMethodOrder?: string[];
+    },
+  ) => StripePaymentElement;
+  submit: () => Promise<StripeSubmitResult>;
+};
+
+type StripeInstance = {
+  elements: (options: {
+    clientSecret: string;
+    locale?: string;
+    appearance?: {
+      theme?: "stripe" | "night" | "flat";
+      variables?: Record<string, string>;
+    };
+  }) => StripeElements;
+  confirmPayment: (options: {
+    elements: StripeElements;
+    clientSecret: string;
+    confirmParams: {
+      return_url: string;
+      payment_method_data?: { billing_details?: { email?: string } };
+    };
+  }) => Promise<StripeConfirmResult>;
+};
+
+type StripeFactory = (publishableKey: string) => StripeInstance;
+
+type PaymentIntentResponse = {
+  clientSecret: string;
+  paymentIntentId: string;
+};
+
+function getErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof Error && error.message) return error.message;
+  return fallback;
+}
+
 /**
  * Checkout de cartão da 3B Pagamentos (Stripe Elements) embutido.
  * Carrega a config do produto, monta o Payment Element e confirma o pagamento.
@@ -25,12 +87,15 @@ export function ThreeBCheckout({ productId, className, showSummary = true }: Thr
   const [email, setEmail] = useState("");
   const [loadError, setLoadError] = useState<string | null>(null);
   const [payError, setPayError] = useState<string | null>(null);
+  const [creatingIntent, setCreatingIntent] = useState(false);
   const [paying, setPaying] = useState(false);
   const [ready, setReady] = useState(false);
+  const [intentReady, setIntentReady] = useState(false);
 
-  const stripeRef = useRef<any>(null);
-  const elementsRef = useRef<any>(null);
-  const expressBoxRef = useRef<HTMLDivElement | null>(null);
+  const stripeRef = useRef<StripeInstance | null>(null);
+  const elementsRef = useRef<StripeElements | null>(null);
+  const clientSecretRef = useRef("");
+  const paymentIntentIdRef = useRef("");
   const paymentBoxRef = useRef<HTMLDivElement | null>(null);
   const emailRef = useRef("");
   emailRef.current = email;
@@ -54,51 +119,8 @@ export function ThreeBCheckout({ productId, className, showSummary = true }: Thr
         const data: CheckoutConfig = await res.json();
         if (cancelled) return;
         setConfig(data);
-
-        const Stripe = await loadStripeJs();
-        if (cancelled) return;
-        const stripe = Stripe(data.publishableKey);
-        stripeRef.current = stripe;
-
-        const elements = stripe.elements({
-          mode: "payment",
-          amount: data.product.priceCents,
-          currency: data.product.currency.toLowerCase(),
-          locale: "es",
-          // O PaymentIntent criado pela 3B nao usa setup_future_usage.
-          // Sem isto, o Link/carteiras podem enviar "on_session" e o Stripe
-          // rejeita o confirm com erro de parametros incompativeis.
-          paymentMethodOptions: {
-            card: { setup_future_usage: "none" },
-            link: { setup_future_usage: "none" },
-          },
-          appearance: {
-            theme: "stripe",
-            variables: {
-              colorPrimary: "#f43f5e",
-              borderRadius: "12px",
-              fontFamily: "system-ui, sans-serif",
-            },
-          },
-        });
-        elementsRef.current = elements;
-
-        if (expressBoxRef.current) {
-          const expr = elements.create("expressCheckout");
-          expr.mount(expressBoxRef.current);
-          expr.on("confirm", () => void pay());
-        }
-
-        if (paymentBoxRef.current) {
-          const payment = elements.create("payment", {
-            terms: { card: "never" },
-            fields: { billingDetails: { email: "never" } },
-          });
-          payment.mount(paymentBoxRef.current);
-          payment.on("ready", () => setReady(true));
-        }
-      } catch (e: any) {
-        if (!cancelled) setLoadError(e?.message || "No se pudo cargar el checkout.");
+      } catch (e: unknown) {
+        if (!cancelled) setLoadError(getErrorMessage(e, "No se pudo cargar el checkout."));
       }
     })();
 
@@ -108,10 +130,76 @@ export function ThreeBCheckout({ productId, className, showSummary = true }: Thr
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productId]);
 
+  async function preparePaymentIntent() {
+    if (!config || intentReady || creatingIntent) return;
+
+    setPayError(null);
+    setCreatingIntent(true);
+    setReady(false);
+    try {
+      const buyerEmail = emailRef.current.trim();
+      if (!buyerEmail) {
+        setPayError("Introduce tu email para recibir el acceso.");
+        return;
+      }
+
+      const Stripe = (await loadStripeJs()) as StripeFactory;
+      const stripe = Stripe(config.publishableKey);
+      stripeRef.current = stripe;
+
+      const res = await fetch(`${THREEB_BASE_URL}/create-payment-intent`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          apiKey: THREEB_API_KEY,
+          productId: config.product.id,
+          quantity: 1,
+          buyerEmail,
+        }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const intent: PaymentIntentResponse = await res.json();
+      clientSecretRef.current = intent.clientSecret;
+      paymentIntentIdRef.current = intent.paymentIntentId;
+
+      const elements = stripe.elements({
+        clientSecret: intent.clientSecret,
+        locale: "es",
+        appearance: {
+          theme: "stripe",
+          variables: {
+            colorPrimary: "#f43f5e",
+            borderRadius: "12px",
+            fontFamily: "system-ui, sans-serif",
+          },
+        },
+      });
+      elementsRef.current = elements;
+
+      if (paymentBoxRef.current) {
+        paymentBoxRef.current.replaceChildren();
+        const payment = elements.create("payment", {
+          terms: { card: "never" },
+          fields: { billingDetails: { email: "never" } },
+          wallets: { applePay: "never", googlePay: "never", link: "never" },
+          paymentMethodOrder: ["card"],
+        });
+        payment.mount(paymentBoxRef.current);
+        payment.on("ready", () => setReady(true));
+      }
+      setIntentReady(true);
+    } catch (e: unknown) {
+      setPayError(getErrorMessage(e, "No se pudo preparar el pago."));
+    } finally {
+      setCreatingIntent(false);
+    }
+  }
+
   async function pay() {
     const stripe = stripeRef.current;
     const elements = elementsRef.current;
-    if (!stripe || !elements || !config) return;
+    const clientSecret = clientSecretRef.current;
+    if (!stripe || !elements || !config || !clientSecret) return;
 
     setPayError(null);
     setPaying(true);
@@ -130,30 +218,17 @@ export function ThreeBCheckout({ productId, className, showSummary = true }: Thr
         return;
       }
 
-      const res = await fetch(`${THREEB_BASE_URL}/create-payment-intent`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          apiKey: THREEB_API_KEY,
-          productId: config.product.id,
-          quantity: 1,
-          buyerEmail,
-        }),
-      });
-      if (!res.ok) throw new Error(await res.text());
-      const { clientSecret, paymentIntentId } = await res.json();
-
       const { error } = await stripe.confirmPayment({
         elements,
         clientSecret,
         confirmParams: {
-          return_url: `${window.location.origin}/obrigado?payment_intent=${paymentIntentId}`,
+          return_url: `${window.location.origin}/obrigado?payment_intent=${paymentIntentIdRef.current}`,
           payment_method_data: { billing_details: { email: buyerEmail } },
         },
       });
       if (error) setPayError(error.message || "No se pudo procesar el pago.");
-    } catch (e: any) {
-      setPayError(e?.message || "No se pudo procesar el pago.");
+    } catch (e: unknown) {
+      setPayError(getErrorMessage(e, "No se pudo procesar el pago."));
     } finally {
       setPaying(false);
     }
@@ -207,10 +282,21 @@ export function ThreeBCheckout({ productId, className, showSummary = true }: Thr
         onChange={(e) => setEmail(e.target.value)}
         placeholder="tu@email.com"
         className="mb-4 w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-200"
+        disabled={intentReady || creatingIntent || paying}
       />
 
-      <div ref={expressBoxRef} className="mb-4" />
-      <div ref={paymentBoxRef} className="mb-4 min-h-[120px]" />
+      {!intentReady && (
+        <button
+          type="button"
+          onClick={() => void preparePaymentIntent()}
+          disabled={!config || creatingIntent}
+          className="mb-4 flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-rose-500 to-rose-600 py-4 font-bold text-white shadow-lg transition-all hover:from-rose-600 hover:to-rose-700 active:scale-[0.99] disabled:opacity-50"
+        >
+          {creatingIntent ? "Preparando pago…" : "Continuar al pago"}
+        </button>
+      )}
+
+      <div ref={paymentBoxRef} className={`mb-4 min-h-[120px] ${intentReady ? "" : "hidden"}`} />
 
       {payError && (
         <p className="mb-3 text-sm font-medium text-rose-600" role="alert">
@@ -221,7 +307,7 @@ export function ThreeBCheckout({ productId, className, showSummary = true }: Thr
       <button
         type="button"
         onClick={() => void pay()}
-        disabled={!ready || paying}
+        disabled={!intentReady || !ready || paying}
         className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-rose-500 to-rose-600 py-4 font-bold text-white shadow-lg transition-all hover:from-rose-600 hover:to-rose-700 active:scale-[0.99] disabled:opacity-50"
       >
         {paying
