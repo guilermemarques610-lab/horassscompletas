@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as Up1RouteImport } from './routes/up1'
 import { Route as PresselRouteImport } from './routes/pressel'
 import { Route as Obrigado4RouteImport } from './routes/obrigado4'
 import { Route as Obrigado3RouteImport } from './routes/obrigado3'
@@ -18,6 +19,11 @@ import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as BackRedirectRouteImport } from './routes/back-redirect'
 import { Route as IndexRouteImport } from './routes/index'
 
+const Up1Route = Up1RouteImport.update({
+  id: '/up1',
+  path: '/up1',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PresselRoute = PresselRouteImport.update({
   id: '/pressel',
   path: '/pressel',
@@ -68,6 +74,7 @@ export interface FileRoutesByFullPath {
   '/obrigado3': typeof Obrigado3Route
   '/obrigado4': typeof Obrigado4Route
   '/pressel': typeof PresselRoute
+  '/up1': typeof Up1Route
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByTo {
   '/obrigado3': typeof Obrigado3Route
   '/obrigado4': typeof Obrigado4Route
   '/pressel': typeof PresselRoute
+  '/up1': typeof Up1Route
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -89,6 +97,7 @@ export interface FileRoutesById {
   '/obrigado3': typeof Obrigado3Route
   '/obrigado4': typeof Obrigado4Route
   '/pressel': typeof PresselRoute
+  '/up1': typeof Up1Route
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -101,6 +110,7 @@ export interface FileRouteTypes {
     | '/obrigado3'
     | '/obrigado4'
     | '/pressel'
+    | '/up1'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -111,6 +121,7 @@ export interface FileRouteTypes {
     | '/obrigado3'
     | '/obrigado4'
     | '/pressel'
+    | '/up1'
   id:
     | '__root__'
     | '/'
@@ -121,6 +132,7 @@ export interface FileRouteTypes {
     | '/obrigado3'
     | '/obrigado4'
     | '/pressel'
+    | '/up1'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -132,10 +144,18 @@ export interface RootRouteChildren {
   Obrigado3Route: typeof Obrigado3Route
   Obrigado4Route: typeof Obrigado4Route
   PresselRoute: typeof PresselRoute
+  Up1Route: typeof Up1Route
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/up1': {
+      id: '/up1'
+      path: '/up1'
+      fullPath: '/up1'
+      preLoaderRoute: typeof Up1RouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pressel': {
       id: '/pressel'
       path: '/pressel'
@@ -204,6 +224,7 @@ const rootRouteChildren: RootRouteChildren = {
   Obrigado3Route: Obrigado3Route,
   Obrigado4Route: Obrigado4Route,
   PresselRoute: PresselRoute,
+  Up1Route: Up1Route,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
