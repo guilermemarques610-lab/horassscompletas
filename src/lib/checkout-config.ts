@@ -10,6 +10,9 @@ export const DEFAULT_PRODUCT_ID = "9918bdb2-d1c2-47fa-94e3-df985caa2b95";
 // Produto da oferta de back-redirect (3B Pagamentos).
 export const BACK_REDIRECT_PRODUCT_ID = "43ca5d35-3492-4567-913d-dc2843ba6931";
 
+// Produto do upsell /up1 (página "El pago no se ha completado").
+export const UP1_PRODUCT_ID = "65009b71-7660-44ef-ba87-24f29c7599a4";
+
 export type CheckoutConfig = {
   store: { name: string };
   product: {
