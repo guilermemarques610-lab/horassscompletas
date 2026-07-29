@@ -1664,6 +1664,7 @@ document.addEventListener("DOMContentLoaded", function () {
   var THREEB_BASE_URL = "https://idyeyanieitpeysobbgf.supabase.co/functions/v1";
   var PRODUCT_ID = "9918bdb2-d1c2-47fa-94e3-df985caa2b95";
   var stripe = null, elements = null, cfg = null, stripeStarted = false, paying = false;
+  var activeClientSecret = null, activePaymentIntentId = null;
 
   function loadStripeJs() {
     if (window.Stripe) return Promise.resolve(window.Stripe);
@@ -1700,31 +1701,36 @@ document.addEventListener("DOMContentLoaded", function () {
       .then(function (data) {
         cfg = data;
         return loadStripeJs().then(function (S) {
+          var email = buyerEmail();
+          if (!email) throw new Error("No encontramos tu email. Vuelve y complétalo.");
           stripe = S(data.publishableKey);
+          return fetch(THREEB_BASE_URL + "/create-payment-intent", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ apiKey: THREEB_API_KEY, productId: data.product.id, quantity: 1, buyerEmail: email })
+          });
+        }).then(function (res) {
+          if (!res.ok) return res.text().then(function (t) { console.error("[pago] create-payment-intent error:", t); throw new Error(t); });
+          return res.json();
+        }).then(function (intent) {
+          activeClientSecret = intent.clientSecret;
+          activePaymentIntentId = intent.paymentIntentId;
           elements = stripe.elements({
-            mode: "payment",
-            amount: data.product.priceCents,
-            currency: String(data.product.currency).toLowerCase(),
+            clientSecret: activeClientSecret,
             locale: "es",
-            // A PaymentIntent criada pela 3B para este produto nao define
-            // setup_future_usage. Sem este override, Stripe Elements pode
-            // confirmar cartao/Link com on_session e o Stripe rejeita por
-            // divergencia entre Elements e PaymentIntent.
-            paymentMethodOptions: {
-              card: { setup_future_usage: "none" },
-              link: { setup_future_usage: "none" }
-            },
             appearance: { theme: "stripe", variables: { colorPrimary: "#f43f5e", borderRadius: "12px", fontFamily: "system-ui, sans-serif" } }
           });
-          var expr = elements.create("expressCheckout");
-          expr.mount("#stripe-express");
-          expr.on("confirm", function () { doPay(); });
+          var express = document.getElementById("stripe-express");
+          if (express) express.style.display = "none";
 
           var pe = elements.create("payment", {
             terms: { card: "never" },
-            fields: { billingDetails: { email: "never" } }
+            fields: { billingDetails: { email: "never" } },
+            wallets: { applePay: "never", googlePay: "never", link: "never" },
+            paymentMethodOrder: ["card"]
           });
           pe.mount("#stripe-payment");
+          showPayError("");
         });
       })
       .catch(function (e) {
@@ -1734,7 +1740,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function doPay() {
-    if (paying || !stripe || !elements || !cfg) return;
+    if (paying || !stripe || !elements || !cfg || !activeClientSecret) return;
     var btn = document.getElementById("pago-cta");
     var email = buyerEmail();
     if (!email) { showPayError("No encontramos tu email. Vuelve y complétalo."); return; }
@@ -1742,36 +1748,24 @@ document.addEventListener("DOMContentLoaded", function () {
     showPayError("");
     if (btn) { btn.disabled = true; btn.dataset.label = btn.textContent; btn.textContent = "Procesando…"; }
 
-    var piId = null;
     elements.submit()
       .then(function (r) {
         if (r.error) {
-          console.warn("[pago] validación local falló (no se creó cobro):", r.error);
+          console.warn("[pago] validación local falló:", r.error);
           throw new Error(r.error.message || "Revisa los datos de la tarjeta.");
         }
-        console.log("[pago] creando PaymentIntent…");
-        return fetch(THREEB_BASE_URL + "/create-payment-intent", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ apiKey: THREEB_API_KEY, productId: cfg.product.id, quantity: 1, buyerEmail: email })
-        });
-      })
-      .then(function (res) { if (!res.ok) return res.text().then(function (t) { console.error("[pago] create-payment-intent error:", t); throw new Error(t); }); return res.json(); })
-      .then(function (d) {
-        piId = d.paymentIntentId;
-        console.log("[pago] PaymentIntent creado:", piId);
         return stripe.confirmPayment({
           elements: elements,
-          clientSecret: d.clientSecret,
+          clientSecret: activeClientSecret,
           confirmParams: {
-            return_url: window.location.origin + "/obrigado?payment_intent=" + d.paymentIntentId,
+            return_url: window.location.origin + "/obrigado?payment_intent=" + activePaymentIntentId,
             payment_method_data: { billing_details: { email: email } }
           }
         });
       })
       .then(function (r) {
         if (r && r.error) {
-          console.error("[pago] confirmPayment falló:", piId, r.error);
+          console.error("[pago] confirmPayment falló:", activePaymentIntentId, r.error);
           var msg = r.error.message || "No se pudo procesar el pago.";
           if (r.error.code) msg += " (" + r.error.code + ")";
           throw new Error(msg);
