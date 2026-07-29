@@ -222,7 +222,7 @@ export function ThreeBCheckout({ productId, className, showSummary = true }: Thr
         elements,
         clientSecret,
         confirmParams: {
-          return_url: `${window.location.origin}/obrigado?payment_intent=${paymentIntentIdRef.current}`,
+          return_url: `${window.location.origin}/obrigado?payment_intent=${paymentIntentIdRef.current}&productId=${encodeURIComponent(productId)}`,
           payment_method_data: { billing_details: { email: buyerEmail } },
         },
       });
