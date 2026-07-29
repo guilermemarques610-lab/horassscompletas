@@ -83,6 +83,13 @@ function Checkout() {
           amount: data.product.priceCents,
           currency: data.product.currency.toLowerCase(),
           locale: "es",
+          // O PaymentIntent criado pela 3B nao usa setup_future_usage.
+          // Sem isto, o Link/carteiras podem enviar "on_session" e o Stripe
+          // rejeita o confirm com erro de parametros incompativeis.
+          paymentMethodOptions: {
+            card: { setupFutureUsage: "none" },
+            link: { setupFutureUsage: "none" },
+          },
           appearance: {
             theme: "stripe",
             variables: {
