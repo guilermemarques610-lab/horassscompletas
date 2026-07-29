@@ -6,6 +6,7 @@ import {
   loadStripeJs,
   type CheckoutConfig,
 } from "@/lib/checkout-config";
+import { useThreeBTracking } from "@/lib/purchase-tracking";
 
 export interface ThreeBCheckoutProps {
   /** ID do produto na 3B Pagamentos. */
