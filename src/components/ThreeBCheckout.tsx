@@ -86,7 +86,12 @@ function getErrorMessage(error: unknown, fallback: string) {
  * Checkout de cartão da 3B Pagamentos (Stripe Elements) embutido.
  * Carrega a config do produto, monta o Payment Element e confirma o pagamento.
  */
-export function ThreeBCheckout({ productId, className, showSummary = true }: ThreeBCheckoutProps) {
+export function ThreeBCheckout({
+  productId,
+  className,
+  showSummary = true,
+  returnPath = "/obrigado",
+}: ThreeBCheckoutProps) {
   // Script oficial de tracking da 3B (checkout via API).
   useThreeBTracking(productId);
   const [config, setConfig] = useState<CheckoutConfig | null>(null);
