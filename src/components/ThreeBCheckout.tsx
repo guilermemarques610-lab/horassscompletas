@@ -15,6 +15,8 @@ export interface ThreeBCheckoutProps {
   className?: string;
   /** Exibe o resumo do produto (imagem, nome e preço). Padrão: true. */
   showSummary?: boolean;
+  /** Rota de destino após o pagamento aprovado. Padrão: "/obrigado". */
+  returnPath?: string;
 }
 
 type StripePaymentError = {
@@ -60,11 +62,12 @@ type StripeInstance = {
   confirmPayment: (options: {
     elements: StripeElements;
     clientSecret: string;
+    redirect?: "always" | "if_required";
     confirmParams: {
       return_url: string;
       payment_method_data?: { billing_details?: { email?: string } };
     };
-  }) => Promise<StripeConfirmResult>;
+  }) => Promise<StripeConfirmResult & { paymentIntent?: { status?: string } }>;
 };
 
 type StripeFactory = (publishableKey: string) => StripeInstance;
@@ -83,7 +86,12 @@ function getErrorMessage(error: unknown, fallback: string) {
  * Checkout de cartão da 3B Pagamentos (Stripe Elements) embutido.
  * Carrega a config do produto, monta o Payment Element e confirma o pagamento.
  */
-export function ThreeBCheckout({ productId, className, showSummary = true }: ThreeBCheckoutProps) {
+export function ThreeBCheckout({
+  productId,
+  className,
+  showSummary = true,
+  returnPath = "/obrigado",
+}: ThreeBCheckoutProps) {
   // Script oficial de tracking da 3B (checkout via API).
   useThreeBTracking(productId);
   const [config, setConfig] = useState<CheckoutConfig | null>(null);
@@ -221,15 +229,25 @@ export function ThreeBCheckout({ productId, className, showSummary = true }: Thr
         return;
       }
 
-      const { error } = await stripe.confirmPayment({
+      const successUrl = `${window.location.origin}${returnPath}?payment_intent=${paymentIntentIdRef.current}&productId=${encodeURIComponent(productId)}&redirect_status=succeeded`;
+
+      const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
         clientSecret,
+        redirect: "if_required",
         confirmParams: {
-          return_url: `${window.location.origin}/obrigado?payment_intent=${paymentIntentIdRef.current}&productId=${encodeURIComponent(productId)}`,
+          return_url: successUrl,
           payment_method_data: { billing_details: { email: buyerEmail } },
         },
       });
-      if (error) setPayError(error.message || "No se pudo procesar el pago.");
+      if (error) {
+        setPayError(error.message || "No se pudo procesar el pago.");
+        return;
+      }
+      // Sem 3DS o Stripe não redireciona sozinho: garantimos a navegação.
+      if (paymentIntent?.status === "succeeded" || paymentIntent?.status === "processing") {
+        window.location.assign(successUrl);
+      }
     } catch (e: unknown) {
       setPayError(getErrorMessage(e, "No se pudo procesar el pago."));
     } finally {

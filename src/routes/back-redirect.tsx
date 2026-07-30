@@ -122,7 +122,11 @@ function BackRedirect() {
 
         {showCheckout ? (
           <div className="w-full">
-            <ThreeBCheckout productId={BACK_REDIRECT_PRODUCT_ID} showSummary={false} />
+            <ThreeBCheckout
+              productId={BACK_REDIRECT_PRODUCT_ID}
+              showSummary={false}
+              returnPath="/up1"
+            />
           </div>
         ) : (
           <button
