@@ -15,6 +15,8 @@ export interface ThreeBCheckoutProps {
   className?: string;
   /** Exibe o resumo do produto (imagem, nome e preço). Padrão: true. */
   showSummary?: boolean;
+  /** Rota de destino após o pagamento aprovado. Padrão: "/obrigado". */
+  returnPath?: string;
 }
 
 type StripePaymentError = {
