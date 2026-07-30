@@ -229,15 +229,25 @@ export function ThreeBCheckout({
         return;
       }
 
-      const { error } = await stripe.confirmPayment({
+      const successUrl = `${window.location.origin}${returnPath}?payment_intent=${paymentIntentIdRef.current}&productId=${encodeURIComponent(productId)}&redirect_status=succeeded`;
+
+      const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
         clientSecret,
+        redirect: "if_required",
         confirmParams: {
-          return_url: `${window.location.origin}/obrigado?payment_intent=${paymentIntentIdRef.current}&productId=${encodeURIComponent(productId)}`,
+          return_url: successUrl,
           payment_method_data: { billing_details: { email: buyerEmail } },
         },
       });
-      if (error) setPayError(error.message || "No se pudo procesar el pago.");
+      if (error) {
+        setPayError(error.message || "No se pudo procesar el pago.");
+        return;
+      }
+      // Sem 3DS o Stripe não redireciona sozinho: garantimos a navegação.
+      if (paymentIntent?.status === "succeeded" || paymentIntent?.status === "processing") {
+        window.location.assign(successUrl);
+      }
     } catch (e: unknown) {
       setPayError(getErrorMessage(e, "No se pudo procesar el pago."));
     } finally {
