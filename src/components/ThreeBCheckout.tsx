@@ -62,11 +62,12 @@ type StripeInstance = {
   confirmPayment: (options: {
     elements: StripeElements;
     clientSecret: string;
+    redirect?: "always" | "if_required";
     confirmParams: {
       return_url: string;
       payment_method_data?: { billing_details?: { email?: string } };
     };
-  }) => Promise<StripeConfirmResult>;
+  }) => Promise<StripeConfirmResult & { paymentIntent?: { status?: string } }>;
 };
 
 type StripeFactory = (publishableKey: string) => StripeInstance;
