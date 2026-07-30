@@ -307,16 +307,18 @@ export function ThreeBCheckout({ productId, className, showSummary = true }: Thr
         </p>
       )}
 
-      <button
-        type="button"
-        onClick={() => void pay()}
-        disabled={!intentReady || !ready || paying}
-        className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-rose-500 to-rose-600 py-4 font-bold text-white shadow-lg transition-all hover:from-rose-600 hover:to-rose-700 active:scale-[0.99] disabled:opacity-50"
-      >
-        {paying
-          ? "Procesando…"
-          : `Pagar ${config ? formatPrice(config.product.priceCents, config.product.currency) : ""}`}
-      </button>
+      {intentReady && (
+        <button
+          type="button"
+          onClick={() => void pay()}
+          disabled={!ready || paying}
+          className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-rose-500 to-rose-600 py-4 font-bold text-white shadow-lg transition-all hover:from-rose-600 hover:to-rose-700 active:scale-[0.99] disabled:opacity-50"
+        >
+          {paying
+            ? "Procesando…"
+            : `Pagar ${config ? formatPrice(config.product.priceCents, config.product.currency) : ""}`}
+        </button>
+      )}
 
       <p className="mt-4 text-center text-[11px] leading-snug text-neutral-400">
         Pago seguro. Tus datos de tarjeta se procesan directamente por Stripe y nunca pasan por
