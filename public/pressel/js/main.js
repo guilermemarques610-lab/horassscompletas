@@ -1724,16 +1724,21 @@ document.addEventListener("DOMContentLoaded", function () {
               });
             }
           } catch (e) { console.error("ttq InitiateCheckout failed", e); }
+          console.log("[Cooud] Sending POST to /create-payment-intent");
           return fetch(THREEB_BASE_URL + "/create-payment-intent", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            mode: "cors", // Explicitly request CORS
+            headers: { 
+              "Content-Type": "application/json",
+              "Accept": "application/json"
+            },
             body: JSON.stringify({ apiKey: THREEB_API_KEY, productId: data.product.id, quantity: 1, buyerEmail: email })
           });
         }).then(function (res) {
+          console.log("[Cooud] Response status:", res.status);
           if (!res.ok) return res.text().then(function (t) { 
-            console.error("[pago] create-payment-intent error:", t); 
-            // Mostra o erro detalhado da API no console para diagnóstico
-            throw new Error("Erro da API Cooud: " + t); 
+            console.error("[pago] create-payment-intent API error details:", t); 
+            throw new Error("Erro da API Cooud (Status " + res.status + "): " + t); 
           });
           return res.json();
         }).then(function (intent) {
