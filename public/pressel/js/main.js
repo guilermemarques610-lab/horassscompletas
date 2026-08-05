@@ -1662,7 +1662,7 @@ document.addEventListener("DOMContentLoaded", function () {
   /* ---- Stripe (3B Pagamentos) ---- */
   var THREEB_API_KEY = "cooud_sk_live_E4MpcDlkqeiXlMDMvTeXtpkLULIk_aQH6pQ_PTRO3AA";
   var THREEB_BASE_URL = "https://checkout.cooud.com/api/v1";
-  var PRODUCT_ID = "9918bdb2-d1c2-47fa-94e3-df985caa2b95";
+  var PRODUCT_ID = "01KZ7W13DD2MVBGG66NPG9EA9T";
   var stripe = null, elements = null, cfg = null, stripeStarted = false, paying = false;
   var activeClientSecret = null, activePaymentIntentId = null;
 

@@ -5,7 +5,7 @@ export const THREEB_API_KEY =
 export const THREEB_BASE_URL = "https://checkout.cooud.com/api/v1";
 
 // ID do produto padrão. Pode ser sobrescrito por ?productId=... na URL.
-export const DEFAULT_PRODUCT_ID = "9918bdb2-d1c2-47fa-94e3-df985caa2b95";
+export const DEFAULT_PRODUCT_ID = "01KZ7W13DD2MVBGG66NPG9EA9T";
 
 // Produto da oferta de back-redirect (3B Pagamentos).
 export const BACK_REDIRECT_PRODUCT_ID = "43ca5d35-3492-4567-913d-dc2843ba6931";
