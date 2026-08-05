@@ -29,8 +29,8 @@ function Index() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-4 text-center">
       <h1 className="mb-4 text-2xl font-bold">TikTok Rewards</h1>
-      <p className="mb-2 whitespace-pre-wrap text-blue-500 text-xs">
-        Adicionei a secret na cloud, ve se ta tudo certo
+      <p className="mb-2 whitespace-pre-wrap text-green-600 text-xs">
+        Secret configurada! Verificando o funcionamento do checkout...
       </p>
 
     </div>
