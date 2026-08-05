@@ -169,9 +169,11 @@ export function ThreeBCheckout({
       stripeRef.current = stripe;
 
       const intent = await cooudCheckoutFn({
-        productId: config.product.id,
-        buyerEmail,
-        quantity: 1,
+        data: {
+          productId: config.product.id,
+          buyerEmail,
+          quantity: 1,
+        }
       });
 
       clientSecretRef.current = intent.cooud_session_secret;
