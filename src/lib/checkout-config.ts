@@ -49,11 +49,11 @@ export function loadStripeJs(): Promise<any> {
       return;
     }
     const s = document.createElement("script");
-    s.src = "https://js.stripe.com/v3/";
+    s.src = "https://cdn.cooud.com/cdn/elements/v1.js";
     s.async = true;
     s.dataset.stripeJs = "true";
-    s.onload = () => resolve((window as any).Stripe);
-    s.onerror = () => reject(new Error("stripe.js failed"));
+    s.onload = () => resolve((window as any).Stripe || (window as any).__CooudElements__);
+    s.onerror = () => reject(new Error("cooud elements js failed"));
     document.head.appendChild(s);
   });
   return stripePromise;
