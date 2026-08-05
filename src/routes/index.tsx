@@ -30,7 +30,10 @@ function Index() {
     <div className="flex min-h-screen flex-col items-center justify-center p-4 text-center">
       <h1 className="mb-4 text-2xl font-bold">TikTok Rewards</h1>
       <p className="mb-2 whitespace-pre-wrap">
-        Não está gerando para colocar o cartão, da esse erro ai!
+        Access to fetch at 'https://checkout.cooud.com/api/v1/get-checkout-config?apiKey=cooud_sk_live_E4MpcDlkqeiXlMDMvTeXtpkLULIk_aQH6pQ_PTRO3AA&productId=01KZ7W13DD2MVBGG66NPG9EA9T' from origin 'https://preview--horascompletas.lovable.app' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+        checkout.cooud.com/api/v1/get-checkout-config?apiKey=cooud_sk_live_E4MpcDlkqeiXlMDMvTeXtpkLULIk_aQH6pQ_PTRO3AA&productId=01KZ7W13DD2MVBGG66NPG9EA9T:1  Failed to load resource: net::ERR_FAILED
+
+        Essas as mensagens de erro
       </p>
     </div>
   );
