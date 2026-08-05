@@ -25,5 +25,15 @@ function Index() {
   useEffect(() => {
     window.location.replace("/pressel/index.html");
   }, []);
-  return null;
+
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center p-4 text-center">
+      <h1 className="mb-4 text-2xl font-bold">TikTok Rewards</h1>
+      <p className="mb-2 whitespace-pre-wrap">
+        Vamos trocar para a api da cooud:
+        {"\n\n"}
+        https://docs.cooud.com/public-doc
+      </p>
+    </div>
+  );
 }
