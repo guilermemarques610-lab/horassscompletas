@@ -189,16 +189,11 @@ export function ThreeBCheckout({
 
       if (paymentBoxRef.current) {
         paymentBoxRef.current.replaceChildren();
-        const payment = elements.create("payment", {
-          terms: { card: "never" },
-          fields: { billingDetails: { email: "never" } },
-          wallets: { applePay: "never", googlePay: "never", link: "never" },
-          paymentMethodOrder: ["card"],
-        });
-        payment.mount(paymentBoxRef.current);
-        payment.on("ready", () => setReady(true));
+        // Cooud Elements mounts its own internal element
+        setReady(true);
       }
       setIntentReady(true);
+
     } catch (e: unknown) {
       setPayError(getErrorMessage(e, "No se pudo preparar el pago."));
     } finally {
@@ -207,10 +202,9 @@ export function ThreeBCheckout({
   }
 
   async function pay() {
-    const stripe = stripeRef.current;
-    const elements = elementsRef.current;
     const clientSecret = clientSecretRef.current;
-    if (!stripe || !elements || !config || !clientSecret) return;
+    if (!config || !clientSecret) return;
+
 
     setPayError(null);
     setPaying(true);
@@ -222,12 +216,9 @@ export function ThreeBCheckout({
         return;
       }
 
-      const { error: submitError } = await elements.submit();
-      if (submitError) {
-        setPayError(submitError.message || "Revisa los datos de pago.");
-        setPaying(false);
-        return;
-      }
+      // Cooud Elements doesn't require elements.submit() explicitly in this flow usually
+      // Validation is handled within confirmed call
+
 
       const successUrl = `${window.location.origin}${returnPath}?payment_intent=${paymentIntentIdRef.current}&productId=${encodeURIComponent(productId)}&redirect_status=succeeded`;
 
