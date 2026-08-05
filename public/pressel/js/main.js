@@ -1704,6 +1704,14 @@ document.addEventListener("DOMContentLoaded", function () {
           var email = buyerEmail();
           if (!email) throw new Error("No encontramos tu email. Vuelve y complétalo.");
           stripe = S(data.publishableKey);
+          
+          // Debugging Cooud parameters before PaymentIntent creation
+          console.log("[Cooud] Initializing with:", {
+            apiKey: THREEB_API_KEY,
+            productId: data.product.id,
+            buyerEmail: email,
+            url: THREEB_BASE_URL + "/create-payment-intent"
+          });
           try {
             if (window.ttq && window.ttq.track) {
               window.ttq.track("InitiateCheckout", {
@@ -1722,7 +1730,11 @@ document.addEventListener("DOMContentLoaded", function () {
             body: JSON.stringify({ apiKey: THREEB_API_KEY, productId: data.product.id, quantity: 1, buyerEmail: email })
           });
         }).then(function (res) {
-          if (!res.ok) return res.text().then(function (t) { console.error("[pago] create-payment-intent error:", t); throw new Error(t); });
+          if (!res.ok) return res.text().then(function (t) { 
+            console.error("[pago] create-payment-intent error:", t); 
+            // Mostra o erro detalhado da API no console para diagnóstico
+            throw new Error("Erro da API Cooud: " + t); 
+          });
           return res.json();
         }).then(function (intent) {
           activeClientSecret = intent.clientSecret;
