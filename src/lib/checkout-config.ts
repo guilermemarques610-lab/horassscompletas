@@ -1,8 +1,8 @@
 // Chave PÚBLICA da 3B Pagamentos (visível no front, apenas identifica a loja).
 export const THREEB_API_KEY =
-  "3bpk_live_227cbff66aa8444abd44447a3b85bdde98bf9533ece74da893cf04b6fbc6788c";
+  "cdpk_live_f898a135a51944ce8d132d7515edc223a5cfc5c7d23a4b089cc5921867e37278";
 
-export const THREEB_BASE_URL = "https://idyeyanieitpeysobbgf.supabase.co/functions/v1";
+export const THREEB_BASE_URL = "https://checkout.cooud.com/api/v1";
 
 // ID do produto padrão. Pode ser sobrescrito por ?productId=... na URL.
 export const DEFAULT_PRODUCT_ID = "9918bdb2-d1c2-47fa-94e3-df985caa2b95";
