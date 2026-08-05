@@ -374,12 +374,14 @@
 
         // Finaliza e redireciona
         const tEnd = setTimeout(() => {
+          // Debugging log to see if it reaches the end of the loading
+          console.log("[Loading] Finished steps, attempting redirect to #nine");
           if (typeof window.showScreen === "function") {
             window.showScreen("nine");
           } else {
             location.hash = "#nine";
           }
-        }, 700);
+        }, 1200);
         newLoadingState.timeouts.push(tEnd);
         return;
       }
