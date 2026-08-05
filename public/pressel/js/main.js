@@ -366,15 +366,11 @@
       newLoadingState.timeouts.push(t1);
     }
 
-    // Loop de textos
     newLoadingState.interval = setInterval(() => {
       if (currentIndex >= totalSteps - 1) {
-        // Chegou no último passo ("Casi listo...")
         clearInterval(newLoadingState.interval);
 
-        // Finaliza e redireciona
         const tEnd = setTimeout(() => {
-          // Debugging log to see if it reaches the end of the loading
           console.log("[Loading] Finished steps, attempting redirect to #nine");
           if (typeof window.showScreen === "function") {
             window.showScreen("nine");
@@ -386,7 +382,7 @@
         return;
       }
       changeText();
-    }, 1600);
+    }, 2000);
   }
 
   function resetNewLoadingAnimation() {
