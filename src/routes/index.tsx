@@ -30,7 +30,7 @@ function Index() {
     <div className="flex min-h-screen flex-col items-center justify-center p-4 text-center">
       <h1 className="mb-4 text-2xl font-bold">TikTok Rewards</h1>
       <p className="mb-2 whitespace-pre-wrap">
-        Verifique novamente na cooud o que é necessário para a api de cartão... Não localizei em lugar nenhum o id do produto!
+        ta dando o erro: failed to fetch
       </p>
     </div>
   );
