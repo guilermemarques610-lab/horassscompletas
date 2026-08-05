@@ -15,7 +15,7 @@ export function useThreeBTracking(productId: string) {
     if (document.querySelector(selector)) return;
 
     const s = document.createElement("script");
-    s.src = "https://3bpagamentos.com/3b-tracking.js";
+    s.src = "https://checkout.cooud.com/api/v1/tracking.js";
     s.async = true;
     s.dataset.apiKey = THREEB_API_KEY;
     s.dataset.productId = productId;

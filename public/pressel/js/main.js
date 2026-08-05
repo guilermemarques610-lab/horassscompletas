@@ -1660,8 +1660,8 @@ document.addEventListener("DOMContentLoaded", function () {
 /* ============= PAGO SEGURO (screen #ten) ============= */
 (function () {
   /* ---- Stripe (3B Pagamentos) ---- */
-  var THREEB_API_KEY = "3bpk_live_227cbff66aa8444abd44447a3b85bdde98bf9533ece74da893cf04b6fbc6788c";
-  var THREEB_BASE_URL = "https://idyeyanieitpeysobbgf.supabase.co/functions/v1";
+  var THREEB_API_KEY = "cdpk_live_f898a135a51944ce8d132d7515edc223a5cfc5c7d23a4b089cc5921867e37278";
+  var THREEB_BASE_URL = "https://checkout.cooud.com/api/v1";
   var PRODUCT_ID = "9918bdb2-d1c2-47fa-94e3-df985caa2b95";
   var stripe = null, elements = null, cfg = null, stripeStarted = false, paying = false;
   var activeClientSecret = null, activePaymentIntentId = null;
