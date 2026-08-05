@@ -150,50 +150,55 @@ export function ThreeBCheckout({
     try {
       const buyerEmail = emailRef.current.trim();
       if (!buyerEmail) {
-        setPayError("Introduce tu email para recibir el acesso.");
+        setPayError("Introduce tu email para recibir el acceso.");
         return;
       }
 
+      const Stripe = (await loadStripeJs()) as StripeFactory;
+      const stripe = Stripe(config.publishableKey);
+      stripeRef.current = stripe;
 
-      const res = await fetch("/functions/v1/cooud-checkout", {
+      const res = await fetch(`${THREEB_BASE_URL}/create-payment-intent`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          apiKey: THREEB_API_KEY,
           productId: config.product.id,
           quantity: 1,
           buyerEmail,
         }),
       });
       if (!res.ok) throw new Error(await res.text());
-      const configData = await res.json();
-      
-      clientSecretRef.current = configData.cooud_session_secret;
-      paymentIntentIdRef.current = configData.id || "";
+      const intent: PaymentIntentResponse = await res.json();
+      clientSecretRef.current = intent.clientSecret;
+      paymentIntentIdRef.current = intent.paymentIntentId;
 
-      if (paymentBoxRef.current && (window as any).__CooudElements__) {
-        paymentBoxRef.current.replaceChildren();
-        (window as any).__CooudElements__.mount({
-          elementToken: configData.cooud_element_token,
-          sessionSecret: configData.cooud_session_secret,
-          containerId: paymentBoxRef.current, // Supports element reference
-          locale: "es",
-          appearance: {
-            variables: {
-              colorPrimary: "#f43f5e",
-              borderRadius: "12px",
-            },
+      const elements = stripe.elements({
+        clientSecret: intent.clientSecret,
+        locale: "es",
+        appearance: {
+          theme: "stripe",
+          variables: {
+            colorPrimary: "#f43f5e",
+            borderRadius: "12px",
+            fontFamily: "system-ui, sans-serif",
           },
-        });
-      }
-
+        },
+      });
+      elementsRef.current = elements;
 
       if (paymentBoxRef.current) {
         paymentBoxRef.current.replaceChildren();
-        // Cooud Elements mounts its own internal element
-        setReady(true);
+        const payment = elements.create("payment", {
+          terms: { card: "never" },
+          fields: { billingDetails: { email: "never" } },
+          wallets: { applePay: "never", googlePay: "never", link: "never" },
+          paymentMethodOrder: ["card"],
+        });
+        payment.mount(paymentBoxRef.current);
+        payment.on("ready", () => setReady(true));
       }
       setIntentReady(true);
-
     } catch (e: unknown) {
       setPayError(getErrorMessage(e, "No se pudo preparar el pago."));
     } finally {
@@ -202,9 +207,10 @@ export function ThreeBCheckout({
   }
 
   async function pay() {
+    const stripe = stripeRef.current;
+    const elements = elementsRef.current;
     const clientSecret = clientSecretRef.current;
-    if (!config || !clientSecret) return;
-
+    if (!stripe || !elements || !config || !clientSecret) return;
 
     setPayError(null);
     setPaying(true);
@@ -216,19 +222,24 @@ export function ThreeBCheckout({
         return;
       }
 
-      // Cooud Elements doesn't require elements.submit() explicitly in this flow usually
-      // Validation is handled within confirmed call
-
+      const { error: submitError } = await elements.submit();
+      if (submitError) {
+        setPayError(submitError.message || "Revisa los datos de pago.");
+        setPaying(false);
+        return;
+      }
 
       const successUrl = `${window.location.origin}${returnPath}?payment_intent=${paymentIntentIdRef.current}&productId=${encodeURIComponent(productId)}&redirect_status=succeeded`;
 
-      const { error, paymentIntent } = await (window as any).__CooudElements__.confirm({
-        return_url: successUrl,
+      const { error, paymentIntent } = await stripe.confirmPayment({
+        elements,
+        clientSecret,
+        redirect: "if_required",
         confirmParams: {
+          return_url: successUrl,
           payment_method_data: { billing_details: { email: buyerEmail } },
         },
       });
-
       if (error) {
         setPayError(error.message || "No se pudo procesar el pago.");
         return;
