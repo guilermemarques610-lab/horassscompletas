@@ -150,42 +150,42 @@ export function ThreeBCheckout({
     try {
       const buyerEmail = emailRef.current.trim();
       if (!buyerEmail) {
-        setPayError("Introduce tu email para recibir el acceso.");
+        setPayError("Introduce tu email para recibir el acesso.");
         return;
       }
 
-      const Stripe = (await loadStripeJs()) as StripeFactory;
-      const stripe = Stripe(config.publishableKey);
-      stripeRef.current = stripe;
 
-      const res = await fetch(`${THREEB_BASE_URL}/create-payment-intent`, {
+      const res = await fetch("/functions/v1/cooud-checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          apiKey: THREEB_API_KEY,
           productId: config.product.id,
           quantity: 1,
           buyerEmail,
         }),
       });
       if (!res.ok) throw new Error(await res.text());
-      const intent: PaymentIntentResponse = await res.json();
-      clientSecretRef.current = intent.clientSecret;
-      paymentIntentIdRef.current = intent.paymentIntentId;
+      const configData = await res.json();
+      
+      clientSecretRef.current = configData.cooud_session_secret;
+      paymentIntentIdRef.current = configData.id || "";
 
-      const elements = stripe.elements({
-        clientSecret: intent.clientSecret,
-        locale: "es",
-        appearance: {
-          theme: "stripe",
-          variables: {
-            colorPrimary: "#f43f5e",
-            borderRadius: "12px",
-            fontFamily: "system-ui, sans-serif",
+      if (paymentBoxRef.current && (window as any).__CooudElements__) {
+        paymentBoxRef.current.replaceChildren();
+        (window as any).__CooudElements__.mount({
+          elementToken: configData.cooud_element_token,
+          sessionSecret: configData.cooud_session_secret,
+          containerId: paymentBoxRef.current, // Supports element reference
+          locale: "es",
+          appearance: {
+            variables: {
+              colorPrimary: "#f43f5e",
+              borderRadius: "12px",
+            },
           },
-        },
-      });
-      elementsRef.current = elements;
+        });
+      }
+
 
       if (paymentBoxRef.current) {
         paymentBoxRef.current.replaceChildren();
@@ -231,15 +231,13 @@ export function ThreeBCheckout({
 
       const successUrl = `${window.location.origin}${returnPath}?payment_intent=${paymentIntentIdRef.current}&productId=${encodeURIComponent(productId)}&redirect_status=succeeded`;
 
-      const { error, paymentIntent } = await stripe.confirmPayment({
-        elements,
-        clientSecret,
-        redirect: "if_required",
+      const { error, paymentIntent } = await (window as any).__CooudElements__.confirm({
+        return_url: successUrl,
         confirmParams: {
-          return_url: successUrl,
           payment_method_data: { billing_details: { email: buyerEmail } },
         },
       });
+
       if (error) {
         setPayError(error.message || "No se pudo procesar el pago.");
         return;
