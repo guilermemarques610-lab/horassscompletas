@@ -1,6 +1,6 @@
 // Chave PÚBLICA da 3B Pagamentos (visível no front, apenas identifica a loja).
 export const THREEB_API_KEY =
-  "cdpk_live_f898a135a51944ce8d132d7515edc223a5cfc5c7d23a4b089cc5921867e37278";
+  "cooud_sk_live_E4MpcDlkqeiXlMDMvTeXtpkLULIk_aQH6pQ_PTRO3AA";
 
 export const THREEB_BASE_URL = "https://checkout.cooud.com/api/v1";
 
