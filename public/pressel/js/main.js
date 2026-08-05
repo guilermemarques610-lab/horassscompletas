@@ -1695,60 +1695,81 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!document.getElementById("stripe-payment")) return;
     stripeStarted = true;
 
+    // Use detailed product config
     fetch(THREEB_BASE_URL + "/get-checkout-config?apiKey=" + encodeURIComponent(THREEB_API_KEY) +
           "&productId=" + encodeURIComponent(PRODUCT_ID))
       .then(function (r) { if (!r.ok) throw new Error("Config no disponible"); return r.json(); })
       .then(function (data) {
         cfg = data;
-        return loadStripeJs().then(function (S) {
-          var email = buyerEmail();
-          if (!email) throw new Error("No encontramos tu email. Vuelve y complétalo.");
-          stripe = S(data.publishableKey);
-          
-          // Debugging Cooud parameters before PaymentIntent creation
-          console.log("[Cooud] Initializing with:", {
-            apiKey: THREEB_API_KEY,
-            productId: data.product.id,
-            buyerEmail: email,
-            url: THREEB_BASE_URL + "/create-payment-intent"
-          });
-          try {
-            if (window.ttq && window.ttq.track) {
-              window.ttq.track("InitiateCheckout", {
-                content_id: data.product.id,
-                content_type: "product",
-                content_name: data.product.name,
-                quantity: 1,
-                value: (data.product.priceCents || 0) / 100,
-                currency: String(data.product.currency || "eur").toUpperCase()
-              });
-            }
-          } catch (e) { console.error("ttq InitiateCheckout failed", e); }
-          console.log("[Cooud] Sending POST to /create-payment-intent");
-          return fetch(THREEB_BASE_URL + "/create-payment-intent", {
-            method: "POST",
-            mode: "cors", // Explicitly request CORS
-            headers: { 
-              "Content-Type": "application/json",
-              "Accept": "application/json"
-            },
-            body: JSON.stringify({ apiKey: THREEB_API_KEY, productId: data.product.id, quantity: 1, buyerEmail: email })
-          });
-        }).then(function (res) {
-          console.log("[Cooud] Response status:", res.status);
-          if (!res.ok) return res.text().then(function (t) { 
-            console.error("[pago] create-payment-intent API error details:", t); 
-            throw new Error("Erro da API Cooud (Status " + res.status + "): " + t); 
-          });
-          return res.json();
-        }).then(function (intent) {
-          activeClientSecret = intent.clientSecret;
-          activePaymentIntentId = intent.paymentIntentId;
-          elements = stripe.elements({
-            clientSecret: activeClientSecret,
+        var email = buyerEmail();
+        if (!email) throw new Error("No encontramos tu email. Vuelve y complétalo.");
+
+        try {
+          if (window.ttq && window.ttq.track) {
+            window.ttq.track("InitiateCheckout", {
+              content_id: data.product.id,
+              content_type: "product",
+              content_name: data.product.name,
+              quantity: 1,
+              value: (data.product.priceCents || 0) / 100,
+              currency: String(data.product.currency || "eur").toUpperCase()
+            });
+          }
+        } catch (e) { console.error("ttq InitiateCheckout failed", e); }
+
+        console.log("[Cooud] Calling Edge Function for session...");
+        // Calling Supabase Edge Function instead of direct Cooud API
+        // Assuming your Supabase URL/Key are available or use absolute URL if needed.
+        // For simplicity and following instructions:
+        return fetch("/functions/v1/cooud-checkout", {
+          method: "POST",
+          headers: { 
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ 
+            productId: data.product.id, 
+            quantity: 1, 
+            buyerEmail: email 
+          })
+        });
+      }).then(function (res) {
+        if (!res.ok) return res.text().then(function (t) { 
+          throw new Error("Erro no backend (Status " + res.status + "): " + t); 
+        });
+        return res.json();
+      }).then(function (config) {
+        // config expected to have cooud_element_token and cooud_session_secret
+        // according to docs: window.__CooudElements__.mount({...})
+        if (!window.__CooudElements__) {
+            throw new Error("Script da Cooud não carregado corretamente.");
+        }
+
+        activeClientSecret = config.cooud_session_secret;
+        activePaymentIntentId = config.id || ""; // ID da sessão/intenção
+
+        window.__CooudElements__.mount({
+            elementToken: config.cooud_element_token,
+            sessionSecret: config.cooud_session_secret,
+            containerId: "stripe-payment",
             locale: "es",
-            appearance: { theme: "stripe", variables: { colorPrimary: "#f43f5e", borderRadius: "12px", fontFamily: "system-ui, sans-serif" } }
-          });
+            appearance: {
+                variables: {
+                    colorPrimary: "#f43f5e",
+                    borderRadius: "12px"
+                }
+            }
+        });
+
+        var express = document.getElementById("stripe-express");
+        if (express) express.style.display = "none";
+        showPayError("");
+      })
+      .catch(function (e) {
+        stripeStarted = false;
+        showPayError(e && e.message ? e.message : "No se pudo cargar el pago.");
+      });
+  }
+
           var express = document.getElementById("stripe-express");
           if (express) express.style.display = "none";
 
@@ -1783,13 +1804,19 @@ document.addEventListener("DOMContentLoaded", function () {
           console.warn("[pago] validación local falló:", r.error);
           throw new Error(r.error.message || "Revisa los datos de la tarjeta.");
         }
-        return stripe.confirmPayment({
-          elements: elements,
-          clientSecret: activeClientSecret,
-          confirmParams: {
+        // Cooud Elements handles confirmation usually via window.__CooudElements__.confirm()
+        // But if using the Stripe-compatible confirmed pattern:
+        if (window.__CooudElements__ && window.__CooudElements__.confirm) {
+          return window.__CooudElements__.confirm({
             return_url: window.location.origin + "/up1?payment_intent=" + activePaymentIntentId,
-            payment_method_data: { billing_details: { email: email } }
-          },
+            confirmParams: {
+              payment_method_data: { billing_details: { email: email } }
+            }
+          });
+        }
+        // Fallback or specific Cooud confirmation logic
+        throw new Error("Método de confirmação não disponível.");
+
           // "if_required": só redireciona o navegador quando o método exige (3DS).
           // Nos demais casos resolvemos aqui e navegamos manualmente — garante
           // que o cliente SEMPRE chegue ao /up1, sem depender do redirect do Stripe.
