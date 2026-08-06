@@ -76,7 +76,15 @@ export function CooudCheckout({
           returnPath,
         }),
       });
-      const data = (await response.json()) as CheckoutBootstrap;
+      const raw = await response.text();
+      let data: CheckoutBootstrap;
+      try {
+        data = JSON.parse(raw) as CheckoutBootstrap;
+      } catch {
+        throw new Error(
+          `El servidor devolvió una respuesta no válida (HTTP ${response.status}). Publica la última versión del sitio e inténtalo de nuevo.`,
+        );
+      }
       if (!response.ok) throw new Error(errorMessage(data, "No se pudo crear la sesión de pago."));
 
       const cooud = (await loadCooudElements()) as CooudElements;
