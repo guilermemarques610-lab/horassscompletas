@@ -1,9 +1,3 @@
-// Chave PÚBLICA da 3B Pagamentos (visível no front, apenas identifica a loja).
-export const THREEB_API_KEY =
-  "cooud_sk_live_E4MpcDlkqeiXlMDMvTeXtpkLULIk_aQH6pQ_PTRO3AA";
-
-export const THREEB_BASE_URL = "https://checkout.cooud.com/api/v1";
-
 // ID do produto padrão. Pode ser sobrescrito por ?productId=... na URL.
 export const DEFAULT_PRODUCT_ID = "01KZ7W13DD2MVBGG66NPG9EA9T";
 
@@ -13,20 +7,6 @@ export const BACK_REDIRECT_PRODUCT_ID = "43ca5d35-3492-4567-913d-dc2843ba6931";
 // Produto do upsell /up1 (página "El pago no se ha completado").
 export const UP1_PRODUCT_ID = "65009b71-7660-44ef-ba87-24f29c7599a4";
 
-export type CheckoutConfig = {
-  store: { name: string };
-  product: {
-    id: string;
-    name: string;
-    description?: string;
-    priceCents: number;
-    currency: string;
-    imageUrl?: string;
-    requiresShipping?: boolean;
-  };
-  publishableKey: string;
-};
-
 export function formatPrice(cents: number, currency: string) {
   return new Intl.NumberFormat("es-ES", {
     style: "currency",
@@ -34,27 +14,33 @@ export function formatPrice(cents: number, currency: string) {
   }).format(cents / 100);
 }
 
-let stripePromise: Promise<any> | null = null;
+let cooudElementsPromise: Promise<unknown> | null = null;
 
-export function loadStripeJs(): Promise<any> {
-  if (stripePromise) return stripePromise;
-  stripePromise = new Promise((resolve, reject) => {
+export function loadCooudElements(): Promise<unknown> {
+  if (cooudElementsPromise) return cooudElementsPromise;
+  cooudElementsPromise = new Promise((resolve, reject) => {
     if (typeof window === "undefined") return reject(new Error("no window"));
-    const w = window as any;
-    if (w.Stripe) return resolve(w.Stripe);
-    const existing = document.querySelector<HTMLScriptElement>("script[data-stripe-js]");
+    const current = window as typeof window & { __CooudElements__?: unknown };
+    if (current.__CooudElements__) return resolve(current.__CooudElements__);
+    const existing = document.querySelector<HTMLScriptElement>("script[data-cooud-elements]");
     if (existing) {
-      existing.addEventListener("load", () => resolve((window as any).Stripe));
-      existing.addEventListener("error", () => reject(new Error("stripe.js failed")));
+      existing.addEventListener("load", () => {
+        const loaded = (window as typeof window & { __CooudElements__?: unknown }).__CooudElements__;
+        loaded ? resolve(loaded) : reject(new Error("Cooud Elements no se inicializó."));
+      });
+      existing.addEventListener("error", () => reject(new Error("No se pudo cargar Cooud Elements.")));
       return;
     }
     const s = document.createElement("script");
     s.src = "https://cdn.cooud.com/cdn/elements/v1.js";
     s.async = true;
-    s.dataset.stripeJs = "true";
-    s.onload = () => resolve((window as any).Stripe || (window as any).__CooudElements__);
-    s.onerror = () => reject(new Error("cooud elements js failed"));
+    s.dataset.cooudElements = "true";
+    s.onload = () => {
+      const loaded = (window as typeof window & { __CooudElements__?: unknown }).__CooudElements__;
+      loaded ? resolve(loaded) : reject(new Error("Cooud Elements no se inicializó."));
+    };
+    s.onerror = () => reject(new Error("No se pudo cargar Cooud Elements."));
     document.head.appendChild(s);
   });
-  return stripePromise;
+  return cooudElementsPromise;
 }

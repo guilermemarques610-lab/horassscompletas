@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import tiktokLogo from "@/assets/tiktok-logo-clean.png.asset.json";
 import { BACK_REDIRECT_PRODUCT_ID } from "@/lib/checkout-config";
-import { ThreeBCheckout } from "@/components/ThreeBCheckout";
+import { CooudCheckout } from "@/components/CooudCheckout";
 
 export const Route = createFileRoute("/back-redirect")({
   head: () => ({
@@ -122,7 +122,7 @@ function BackRedirect() {
 
         {showCheckout ? (
           <div className="w-full">
-            <ThreeBCheckout
+            <CooudCheckout
               productId={BACK_REDIRECT_PRODUCT_ID}
               showSummary={false}
               returnPath="/up1"
