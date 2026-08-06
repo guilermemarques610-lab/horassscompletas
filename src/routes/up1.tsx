@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { ThreeBCheckout } from "@/components/ThreeBCheckout";
+import { CooudCheckout } from "@/components/CooudCheckout";
 import { DEFAULT_PRODUCT_ID, UP1_PRODUCT_ID } from "@/lib/checkout-config";
-import { useThreeBTracking, useTikTokPurchase } from "@/lib/purchase-tracking";
+import { useTikTokPurchase } from "@/lib/purchase-tracking";
 
 export const Route = createFileRoute("/up1")({
   head: () => ({
@@ -29,9 +29,6 @@ export const Route = createFileRoute("/up1")({
 function Up1Page() {
   const [showCheckout, setShowCheckout] = useState(false);
 
-  // /up1 também é a página de retorno da compra da home (pressel):
-  // confirma o pagamento com a 3B e dispara Purchase do produto principal.
-  useThreeBTracking(DEFAULT_PRODUCT_ID);
   useTikTokPurchase({ productId: DEFAULT_PRODUCT_ID });
 
 
@@ -127,10 +124,10 @@ function Up1Page() {
           </button>
         )}
 
-        {/* Checkout inline (API 3B Pagamentos) */}
+        {/* Checkout inline (Cooud API v2 Elements) */}
         {showCheckout && (
           <div className="mt-5 text-left">
-            <ThreeBCheckout productId={UP1_PRODUCT_ID} showSummary={false} />
+            <CooudCheckout productId={UP1_PRODUCT_ID} showSummary={false} />
           </div>
         )}
 

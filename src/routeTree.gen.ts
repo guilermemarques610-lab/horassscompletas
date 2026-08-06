@@ -18,6 +18,7 @@ import { Route as ObrigadoRouteImport } from './routes/obrigado'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as BackRedirectRouteImport } from './routes/back-redirect'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiPublicCooudCheckoutRouteImport } from './routes/api/public/cooud/checkout'
 
 const Up1Route = Up1RouteImport.update({
   id: '/up1',
@@ -64,6 +65,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCooudCheckoutRoute = ApiPublicCooudCheckoutRouteImport.update({
+  id: '/api/public/cooud/checkout',
+  path: '/api/public/cooud/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -75,6 +81,7 @@ export interface FileRoutesByFullPath {
   '/obrigado4': typeof Obrigado4Route
   '/pressel': typeof PresselRoute
   '/up1': typeof Up1Route
+  '/api/public/cooud/checkout': typeof ApiPublicCooudCheckoutRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -86,6 +93,7 @@ export interface FileRoutesByTo {
   '/obrigado4': typeof Obrigado4Route
   '/pressel': typeof PresselRoute
   '/up1': typeof Up1Route
+  '/api/public/cooud/checkout': typeof ApiPublicCooudCheckoutRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -98,6 +106,7 @@ export interface FileRoutesById {
   '/obrigado4': typeof Obrigado4Route
   '/pressel': typeof PresselRoute
   '/up1': typeof Up1Route
+  '/api/public/cooud/checkout': typeof ApiPublicCooudCheckoutRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -111,6 +120,7 @@ export interface FileRouteTypes {
     | '/obrigado4'
     | '/pressel'
     | '/up1'
+    | '/api/public/cooud/checkout'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -122,6 +132,7 @@ export interface FileRouteTypes {
     | '/obrigado4'
     | '/pressel'
     | '/up1'
+    | '/api/public/cooud/checkout'
   id:
     | '__root__'
     | '/'
@@ -133,6 +144,7 @@ export interface FileRouteTypes {
     | '/obrigado4'
     | '/pressel'
     | '/up1'
+    | '/api/public/cooud/checkout'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -145,6 +157,7 @@ export interface RootRouteChildren {
   Obrigado4Route: typeof Obrigado4Route
   PresselRoute: typeof PresselRoute
   Up1Route: typeof Up1Route
+  ApiPublicCooudCheckoutRoute: typeof ApiPublicCooudCheckoutRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -212,6 +225,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/cooud/checkout': {
+      id: '/api/public/cooud/checkout'
+      path: '/api/public/cooud/checkout'
+      fullPath: '/api/public/cooud/checkout'
+      preLoaderRoute: typeof ApiPublicCooudCheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -225,17 +245,8 @@ const rootRouteChildren: RootRouteChildren = {
   Obrigado4Route: Obrigado4Route,
   PresselRoute: PresselRoute,
   Up1Route: Up1Route,
+  ApiPublicCooudCheckoutRoute: ApiPublicCooudCheckoutRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
