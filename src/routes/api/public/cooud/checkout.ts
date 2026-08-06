@@ -35,6 +35,7 @@ type CooudError = {
   code?: string;
   message?: string;
   request_id?: string;
+  error?: CooudError;
   [key: string]: unknown;
 };
 
@@ -46,6 +47,10 @@ async function readBody(response: Response): Promise<CooudError> {
   } catch {
     return { message: text };
   }
+}
+
+function cooudRequestId(body: CooudError, response: Response) {
+  return response.headers.get("x-request-id") ?? body.request_id ?? body.error?.request_id;
 }
 
 function json(body: unknown, status = 200) {
@@ -112,15 +117,15 @@ export const Route = createFileRoute("/api/public/cooud/checkout")({
           if (!sessionResponse.ok || typeof session.id !== "string") {
             console.error("[Cooud v2] create checkout session failed", {
               status: sessionResponse.status,
-              requestId: sessionResponse.headers.get("x-request-id") ?? session.request_id,
+              requestId: cooudRequestId(session, sessionResponse),
               response: session,
             });
             return json(
               {
                 error: "cooud_session_failed",
                 status: sessionResponse.status,
-                requestId: sessionResponse.headers.get("x-request-id") ?? session.request_id,
-                details: session,
+                requestId: cooudRequestId(session, sessionResponse),
+                details: session.error ?? session,
               },
               502,
             );
@@ -139,15 +144,15 @@ export const Route = createFileRoute("/api/public/cooud/checkout")({
             console.error("[Cooud v2] element config failed", {
               status: configResponse.status,
               sessionId: session.id,
-              requestId: configResponse.headers.get("x-request-id") ?? config.request_id,
+              requestId: cooudRequestId(config, configResponse),
               response: config,
             });
             return json(
               {
                 error: "cooud_element_config_failed",
                 status: configResponse.status,
-                requestId: configResponse.headers.get("x-request-id") ?? config.request_id,
-                details: config,
+                requestId: cooudRequestId(config, configResponse),
+                details: config.error ?? config,
               },
               502,
             );

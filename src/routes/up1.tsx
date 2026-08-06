@@ -124,7 +124,7 @@ function Up1Page() {
           </button>
         )}
 
-        {/* Checkout inline (API 3B Pagamentos) */}
+        {/* Checkout inline (Cooud API v2 Elements) */}
         {showCheckout && (
           <div className="mt-5 text-left">
             <CooudCheckout productId={UP1_PRODUCT_ID} showSummary={false} />
