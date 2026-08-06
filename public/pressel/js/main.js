@@ -1720,7 +1720,6 @@ document.addEventListener("DOMContentLoaded", function () {
           try { data = JSON.parse(raw); } catch (e) {
             throw new Error("El servidor devolvió una respuesta no válida (HTTP " + response.status + "). Publica la última versión del sitio e inténtalo de nuevo.");
           }
-          return Promise.resolve(data).then(function (data) {
           if (!response.ok) {
             var detail = data.details && data.details.message;
             var requestId = data.requestId ? " · request_id: " + data.requestId : "";
