@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import tiktokLogo from "@/assets/tiktok-logo-clean.png.asset.json";
 import { DEFAULT_PRODUCT_ID } from "@/lib/checkout-config";
-import { useThreeBTracking, useTikTokPurchase } from "@/lib/purchase-tracking";
+import { useTikTokPurchase } from "@/lib/purchase-tracking";
 
 export const Route = createFileRoute("/obrigado")({
   head: () => ({
@@ -32,8 +32,6 @@ function Obrigado() {
       new URLSearchParams(window.location.search).get("productId")) ||
     DEFAULT_PRODUCT_ID;
 
-  // Confirmação server-side da 3B (Events API) + Purchase do TikTok pós-confirmação.
-  useThreeBTracking(productId);
   useTikTokPurchase({ productId });
 
 

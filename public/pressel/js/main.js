@@ -1659,164 +1659,98 @@ document.addEventListener("DOMContentLoaded", function () {
 
 /* ============= PAGO SEGURO (screen #ten) ============= */
 (function () {
-  /* ---- Stripe (3B Pagamentos) ---- */
-  var THREEB_API_KEY = "cooud_sk_live_E4MpcDlkqeiXlMDMvTeXtpkLULIk_aQH6pQ_PTRO3AA";
-  var THREEB_BASE_URL = "https://checkout.cooud.com/api/v1";
+  /* ---- Cooud API v2 Elements ---- */
   var PRODUCT_ID = "01KZ7W13DD2MVBGG66NPG9EA9T";
-  var stripe = null, elements = null, cfg = null, stripeStarted = false, paying = false;
-  var activeClientSecret = null, activePaymentIntentId = null;
+  var cooudStarted = false;
+  var unmountCooud = null;
 
-  function loadStripeJs() {
-    if (window.Stripe) return Promise.resolve(window.Stripe);
+  function loadCooudElements() {
+    if (window.__CooudElements__) return Promise.resolve(window.__CooudElements__);
     return new Promise(function (resolve, reject) {
-      var s = document.createElement("script");
-      s.src = "https://js.stripe.com/v3/";
-      s.onload = function () { resolve(window.Stripe); };
-      s.onerror = function () { reject(new Error("No se pudo cargar Stripe.")); };
-      document.head.appendChild(s);
+      var existing = document.querySelector("script[data-cooud-elements]");
+      if (existing) {
+        existing.addEventListener("load", function () { resolve(window.__CooudElements__); });
+        existing.addEventListener("error", function () { reject(new Error("No se pudo cargar Cooud Elements.")); });
+        return;
+      }
+      var script = document.createElement("script");
+      script.src = "https://cdn.cooud.com/cdn/elements/v1.js";
+      script.async = true;
+      script.dataset.cooudElements = "true";
+      script.onload = function () {
+        if (!window.__CooudElements__) return reject(new Error("Cooud Elements no se inicializó."));
+        resolve(window.__CooudElements__);
+      };
+      script.onerror = function () { reject(new Error("No se pudo cargar Cooud Elements.")); };
+      document.head.appendChild(script);
     });
   }
 
-  function showPayError(msg) {
-    var el = document.getElementById("stripe-error");
-    if (!el) return;
-    el.textContent = msg || "";
-    el.style.display = msg ? "block" : "none";
+  function showPayError(message) {
+    var element = document.getElementById("cooud-error");
+    if (!element) return;
+    element.textContent = message || "";
+    element.style.display = message ? "block" : "none";
   }
 
   function buyerEmail() {
-    var el = document.getElementById("pago-correo");
-    var v = el ? (el.textContent || "").trim() : "";
-    return /\S+@\S+\.\S+/.test(v) ? v : "";
+    var element = document.getElementById("pago-correo");
+    var value = element ? (element.textContent || "").trim() : "";
+    return /\S+@\S+\.\S+/.test(value) ? value : "";
   }
 
-  function initStripe() {
-    if (stripeStarted) return;
-    if (!document.getElementById("stripe-payment")) return;
-    stripeStarted = true;
-
-    fetch(THREEB_BASE_URL + "/get-checkout-config?apiKey=" + encodeURIComponent(THREEB_API_KEY) +
-          "&productId=" + encodeURIComponent(PRODUCT_ID))
-      .then(function (r) { if (!r.ok) throw new Error("Config no disponible"); return r.json(); })
-      .then(function (data) {
-        cfg = data;
-        return loadStripeJs().then(function (S) {
-          var email = buyerEmail();
-          if (!email) throw new Error("No encontramos tu email. Vuelve y complétalo.");
-          stripe = S(data.publishableKey);
-          
-          // Debugging Cooud parameters before PaymentIntent creation
-          console.log("[Cooud] Initializing with:", {
-            apiKey: THREEB_API_KEY,
-            productId: data.product.id,
-            buyerEmail: email,
-            url: THREEB_BASE_URL + "/create-payment-intent"
-          });
-          try {
-            if (window.ttq && window.ttq.track) {
-              window.ttq.track("InitiateCheckout", {
-                content_id: data.product.id,
-                content_type: "product",
-                content_name: data.product.name,
-                quantity: 1,
-                value: (data.product.priceCents || 0) / 100,
-                currency: String(data.product.currency || "eur").toUpperCase()
-              });
-            }
-          } catch (e) { console.error("ttq InitiateCheckout failed", e); }
-          return fetch(THREEB_BASE_URL + "/create-payment-intent", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ apiKey: THREEB_API_KEY, productId: data.product.id, quantity: 1, buyerEmail: email })
-          });
-        }).then(function (res) {
-          if (!res.ok) return res.text().then(function (t) { 
-            console.error("[pago] create-payment-intent error:", t); 
-            // Mostra o erro detalhado da API no console para diagnóstico
-            throw new Error("Erro da API Cooud: " + t); 
-          });
-          return res.json();
-        }).then(function (intent) {
-          activeClientSecret = intent.clientSecret;
-          activePaymentIntentId = intent.paymentIntentId;
-          elements = stripe.elements({
-            clientSecret: activeClientSecret,
-            locale: "es",
-            appearance: { theme: "stripe", variables: { colorPrimary: "#f43f5e", borderRadius: "12px", fontFamily: "system-ui, sans-serif" } }
-          });
-          var express = document.getElementById("stripe-express");
-          if (express) express.style.display = "none";
-
-          var pe = elements.create("payment", {
-            terms: { card: "never" },
-            fields: { billingDetails: { email: "never" } },
-            wallets: { applePay: "never", googlePay: "never", link: "never" },
-            paymentMethodOrder: ["card"]
-          });
-          pe.mount("#stripe-payment");
-          showPayError("");
-        });
-      })
-      .catch(function (e) {
-        stripeStarted = false;
-        showPayError(e && e.message ? e.message : "No se pudo cargar el pago.");
-      });
-  }
-
-  function doPay() {
-    if (paying || !stripe || !elements || !cfg || !activeClientSecret) return;
-    var btn = document.getElementById("pago-cta");
+  function initCooud() {
+    if (cooudStarted) return;
+    var container = document.getElementById("cooud-payment");
+    if (!container) return;
     var email = buyerEmail();
     if (!email) { showPayError("No encontramos tu email. Vuelve y complétalo."); return; }
-    paying = true;
+    cooudStarted = true;
     showPayError("");
-    if (btn) { btn.disabled = true; btn.dataset.label = btn.textContent; btn.textContent = "Procesando…"; }
 
-    elements.submit()
-      .then(function (r) {
-        if (r.error) {
-          console.warn("[pago] validación local falló:", r.error);
-          throw new Error(r.error.message || "Revisa los datos de la tarjeta.");
-        }
-        return stripe.confirmPayment({
-          elements: elements,
-          clientSecret: activeClientSecret,
-          confirmParams: {
-            return_url: window.location.origin + "/up1?payment_intent=" + activePaymentIntentId,
-            payment_method_data: { billing_details: { email: email } }
-          },
-          // "if_required": só redireciona o navegador quando o método exige (3DS).
-          // Nos demais casos resolvemos aqui e navegamos manualmente — garante
-          // que o cliente SEMPRE chegue ao /up1, sem depender do redirect do Stripe.
-          redirect: "if_required"
+    Promise.all([
+      loadCooudElements(),
+      fetch("/api/public/cooud/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId: PRODUCT_ID, buyerEmail: email, quantity: 1, origin: window.location.origin, returnPath: "/up1" })
+      }).then(function (response) {
+        return response.json().then(function (data) {
+          if (!response.ok) {
+            var detail = data.details && data.details.message;
+            var requestId = data.requestId ? " · request_id: " + data.requestId : "";
+            throw new Error((detail || data.message || "No se pudo crear la sesión de pago.") + requestId);
+          }
+          return data;
         });
       })
-      .then(function (r) {
-        if (r && r.error) {
-          console.error("[pago] confirmPayment falló:", activePaymentIntentId, r.error);
-          var msg = r.error.message || "No se pudo procesar el pago.";
-          if (r.error.code) msg += " (" + r.error.code + ")";
-          throw new Error(msg);
+    ]).then(function (result) {
+      var Cooud = result[0];
+      var config = result[1];
+      if (unmountCooud) unmountCooud();
+      unmountCooud = Cooud.mount({
+        container: container,
+        sessionId: config.sessionId,
+        elementToken: config.elementToken,
+        sessionSecret: config.sessionSecret,
+        appearance: (config.appearance && config.appearance.appearance) || { theme: "light" },
+        apiBaseUrl: "https://api.cooud.com",
+        compatDate: "2026-09-01",
+        onSuccess: function () {
+          window.location.assign("/up1?checkout_session_id=" + encodeURIComponent(config.sessionId) + "&productId=" + encodeURIComponent(PRODUCT_ID) + "&redirect_status=succeeded");
+        },
+        onError: function (error) {
+          showPayError((error && error.message ? error.message : "No se pudo procesar el pago.") + (error && error.code ? " (" + error.code + ")" : ""));
         }
-        var pi = r && r.paymentIntent;
-        var st = pi && pi.status;
-        if (st === "succeeded" || st === "processing" || st === "requires_capture") {
-          var url =
-            window.location.origin +
-            "/up1?payment_intent=" + encodeURIComponent(pi.id) +
-            "&payment_intent_client_secret=" + encodeURIComponent(pi.client_secret || activeClientSecret) +
-            "&redirect_status=" + encodeURIComponent(st === "succeeded" ? "succeeded" : st);
-          window.location.replace(url);
-          return;
-        }
-        if (st) throw new Error("El pago no se completó (" + st + ").");
-      })
-      .catch(function (e) { showPayError(e && e.message ? e.message : "No se pudo procesar el pago."); })
-      .finally(function () {
-        paying = false;
-        if (btn) { btn.disabled = false; btn.textContent = btn.dataset.label || "Pagar y liberar retiro"; }
       });
-
+      try {
+        if (window.ttq && window.ttq.track) window.ttq.track("InitiateCheckout", { content_id: PRODUCT_ID, content_type: "product", quantity: 1, value: 19.9, currency: "EUR" });
+      } catch (error) { console.error("ttq InitiateCheckout failed", error); }
+    }).catch(function (error) {
+      cooudStarted = false;
+      console.error("[Cooud v2] checkout bootstrap failed", error);
+      showPayError(error && error.message ? error.message : "No se pudo cargar el pago.");
+    });
   }
 
   function fillPago() {
@@ -1887,21 +1821,16 @@ document.addEventListener("DOMContentLoaded", function () {
       bindMasks();
       if (typeof window.showScreen === "function") window.showScreen("ten");
       window.scrollTo(0, 0);
-      setTimeout(initStripe, 50);
+      setTimeout(initCooud, 50);
       return;
-    }
-    const pay = e.target.closest("#pago-cta");
-    if (pay) {
-      e.preventDefault();
-      doPay();
     }
   });
 
   // Se entrar direto via hash #ten
   window.addEventListener("hashchange", () => {
-    if (location.hash === "#ten") { fillPago(); bindMasks(); initStripe(); }
+    if (location.hash === "#ten") { fillPago(); bindMasks(); initCooud(); }
   });
-  if (location.hash === "#ten") { setTimeout(() => { fillPago(); bindMasks(); initStripe(); }, 50); }
+  if (location.hash === "#ten") { setTimeout(() => { fillPago(); bindMasks(); initCooud(); }, 50); }
 
 })();
 
