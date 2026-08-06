@@ -1715,7 +1715,11 @@ document.addEventListener("DOMContentLoaded", function () {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ productId: PRODUCT_ID, buyerEmail: email, quantity: 1, origin: window.location.origin, returnPath: "/up1" })
       }).then(function (response) {
-        return response.json().then(function (data) {
+        return response.text().then(function (raw) {
+          var data;
+          try { data = JSON.parse(raw); } catch (e) {
+            throw new Error("El servidor devolvió una respuesta no válida (HTTP " + response.status + "). Publica la última versión del sitio e inténtalo de nuevo.");
+          }
           if (!response.ok) {
             var detail = data.details && data.details.message;
             var requestId = data.requestId ? " · request_id: " + data.requestId : "";
